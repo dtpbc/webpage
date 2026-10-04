@@ -26,7 +26,17 @@ export async function getMemberByAuthId(authId: string): Promise<User | null> {
     console.warn('Supabase member fetch error:', error.message);
     return null;
   }
-  return data as User | null;
+  return data ? {
+    id: data.id,
+    memberId: data.member_id,
+    name: data.name,
+    studentId: data.student_id,
+    grade: data.grade,
+    email: data.email,
+    role: data.role,
+    skillLevel: data.skill_level,
+    joinDate: data.join_date,
+  } as User : null;
 }
 
 export async function getMemberByLogin(login: string): Promise<User | null> {
@@ -41,7 +51,17 @@ export async function getMemberByLogin(login: string): Promise<User | null> {
     console.warn('Supabase member lookup error:', error.message);
     return null;
   }
-  return data as User | null;
+  return data ? {
+    id: data.id,
+    memberId: data.member_id,
+    name: data.name,
+    studentId: data.student_id,
+    grade: data.grade,
+    email: data.email,
+    role: data.role,
+    skillLevel: data.skill_level,
+    joinDate: data.join_date,
+  } as User : null;
 }
 
 export async function createMemberProfile(user: User): Promise<boolean> {
