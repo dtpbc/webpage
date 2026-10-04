@@ -6,7 +6,6 @@ import {
   MapPin, 
   Users, 
   Check, 
-  AlertCircle, 
   ShieldCheck, 
   Edit3, 
   Plus, 
@@ -383,9 +382,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                           <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                           <span>{session.location}</span>
                         </div>
-                        <div className="text-[11px] text-sky-800 font-semibold">
-                          Court Setup: <strong>{session.gymLayout || '4 Portable Courts'}</strong>
-                        </div>
                         <div className="flex items-center gap-1.5 text-slate-600">
                           <Users className="w-3.5 h-3.5 text-sky-600 shrink-0" />
                           <span>Coordinated by: {session.coordinator}</span>
@@ -418,31 +414,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
           )}
         </div>
 
-        {/* Gymnasium Rules & Paddle Stack Etiquette */}
-        <div className="rounded-2xl bg-white border border-sky-200 p-6 sm:p-8 shadow-xs">
-          <div className="flex items-start gap-4">
-            <AlertCircle className="w-6 h-6 text-sky-700 shrink-0 mt-0.5" />
-            <div className="space-y-3">
-              <h4 className="font-display text-lg font-bold text-slate-900">
-                Gymnasium Rules & Paddle Stack Etiquette
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-600 leading-relaxed">
-                <div>
-                  <strong className="text-slate-900 block mb-1">1. Non-Marking Footwear</strong>
-                  Only clean indoor gym shoes with non-marking rubber soles are permitted. No street boots or outdoor sneakers.
-                </div>
-                <div>
-                  <strong className="text-slate-900 block mb-1">2. Paddle Stack Queue</strong>
-                  Place your paddle on the wooden stack bench to enter the rotation. When games end at 11 points, the next four players take the court.
-                </div>
-                <div>
-                  <strong className="text-slate-900 block mb-1">3. Equipment Cleanup</strong>
-                  All members help collapse portable nets and return balls to the equipment cage 5 minutes before the bell.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Gymnasium rules */}
       </div>
     </div>
   );
