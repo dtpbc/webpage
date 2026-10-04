@@ -3,6 +3,8 @@ import { User, ClubSession, SpecialEvent, AttendanceRecord } from '../types';
 import { INITIAL_CLUB_SESSIONS, INITIAL_SPECIAL_EVENTS } from '../data/mockData';
 import { 
   isSupabaseConfigured,
+  supabase,
+  getMemberByAuthId,
   getRemoteSessions, 
   upsertRemoteSession, 
   deleteRemoteSession,
@@ -15,11 +17,10 @@ interface AuthContextType {
   currentUser: User | null;
   allMembers: User[];
   isAdmin: boolean;
-  login: (emailOrStudentId: string) => boolean;
-  signup: (userData: Partial<User>) => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  signup: (userData: Partial<User>, password: string) => Promise<{ success: boolean; message?: string }>;
   updateProfile: (updatedData: Partial<User>) => void;
   logout: () => void;
-  switchDemoUser: (userId: string) => void;
   // Sessions & Calendar (Admin editable)
   sessions: ClubSession[];
   addSession: (session: Omit<ClubSession, 'id'>) => Promise<void>;
@@ -76,10 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   });
 
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('dtpbc_current_user_v5');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [sessions, setSessions] = useState<ClubSession[]>(() => {
     const saved = localStorage.getItem('dtpbc_sessions_v5');
@@ -125,6 +123,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = currentUser?.role === 'executive' || currentUser?.role === 'sponsor_teacher';
 
+  // Supabase Auth is the source of truth for signed-in users.
+  useEffect(() => {
+    if (!supabase) return;
+
+    const loadCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const profile = await getMemberByAuthId(user.id);
+      if (profile) {
+        setCurrentUser(profile);
+        setAllMembers(prev => prev.some(m => m.id === profile.id) ? prev.map(m => m.id === profile.id ? profile : m) : [...prev, profile]);
+      }
+    };
+
+    loadCurrentUser();
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        setCurrentUser(null);
+        return;
+      }
+      const profile = await getMemberByAuthId(session.user.id);
+      if (profile) {
+        setCurrentUser(profile);
+        setAllMembers(prev => prev.some(m => m.id === profile.id) ? prev.map(m => m.id === profile.id ? profile : m) : [...prev, profile]);
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
   // Live cloud sync
   useEffect(() => {
     if (isSupabaseConfigured) {
@@ -148,14 +175,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [allMembers]);
 
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('dtpbc_current_user_v5', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('dtpbc_current_user_v5');
-    }
-  }, [currentUser]);
-
-  useEffect(() => {
     localStorage.setItem('dtpbc_sessions_v5', JSON.stringify(sessions));
   }, [sessions]);
 
@@ -171,73 +190,91 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('dtpbc_attendance_v5', JSON.stringify(attendanceRecords));
   }, [attendanceRecords]);
 
-  const login = (emailOrStudentId: string): boolean => {
-    const query = emailOrStudentId.trim().toLowerCase();
-    const found = allMembers.find(
-      m => m.email.toLowerCase() === query || 
-           m.studentId.toLowerCase() === query ||
-           m.memberId.toLowerCase() === query
-    );
-    if (found) {
-      setCurrentUser(found);
-      return true;
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    if (!supabase) {
+      return { success: false, message: 'Supabase is not configured. Please contact the club executive team.' };
     }
-    // Create new student with distinct member ID and numeric 7-digit ID
-    const generatedId = query.match(/^\d{7}$/) ? query : String(Math.floor(1000000 + Math.random() * 9000000));
-    const newStudent: User = {
-      id: `user-${Date.now()}`,
-      memberId: generateMemberId(),
-      name: query.includes('@') ? query.split('@')[0] : `Student ${generatedId}`,
-      studentId: generatedId,
-      grade: 'Grade 10',
-      email: query.includes('@') ? query : `${generatedId}@gmail.com`,
-      role: 'member',
-      skillLevel: 'Beginner (Learning Rules)',
-      joinDate: 'October 2026',
-    };
-    setAllMembers(prev => [...prev, newStudent]);
-    setCurrentUser(newStudent);
-    return true;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (error || !data.user) {
+      return { success: false, message: error?.message || 'Unable to sign in.' };
+    }
+
+    const profile = await getMemberByAuthId(data.user.id);
+    if (!profile) {
+      await supabase.auth.signOut();
+      return { success: false, message: 'Your Supabase account exists, but no DTPBC member profile is linked to it yet.' };
+    }
+
+    setCurrentUser(profile);
+    setAllMembers(prev => prev.some(m => m.id === profile.id) ? prev.map(m => m.id === profile.id ? profile : m) : [...prev, profile]);
+    return { success: true };
   };
 
-  const signup = (userData: Partial<User>) => {
-    const rawId = (userData.studentId || '').replace(/\D/g, '');
-    const cleanId = rawId.length === 7 ? rawId : String(Math.floor(1000000 + Math.random() * 9000000));
+  const signup = async (userData: Partial<User>, password: string): Promise<{ success: boolean; message?: string }> => {
+    if (!supabase) {
+      return { success: false, message: 'Supabase is not configured. Please contact the club executive team.' };
+    }
 
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      memberId: generateMemberId(),
-      name: userData.name || 'David Thompson Student',
-      studentId: cleanId,
-      grade: userData.grade || 'Grade 9',
-      email: userData.email || `${cleanId}@gmail.com`,
-      role: 'member',
-      skillLevel: userData.skillLevel || 'Beginner (Learning Rules)',
-      joinDate: 'October 2026',
-    };
-    setAllMembers(prev => [...prev, newUser]);
-    setCurrentUser(newUser);
+    const rawId = (userData.studentId || '').replace(/\\D/g, '');
+    const cleanId = rawId.length === 7 ? rawId : String(Math.floor(1000000 + Math.random() * 9000000));
+    const memberId = generateMemberId();
+
+    const { data, error } = await supabase.auth.signUp({
+      email: (userData.email || '').trim(),
+      password,
+      options: {
+        data: {
+          name: userData.name || 'David Thompson Student',
+          studentId: cleanId,
+          grade: userData.grade || 'Grade 9',
+          skillLevel: userData.skillLevel || 'Beginner (Learning Rules)',
+          memberId,
+        },
+      },
+    });
+
+    if (error || !data.user) {
+      return { success: false, message: error?.message || 'Unable to create your account.' };
+    }
+
+    if (!data.session) {
+      return { success: true, message: 'Account created. Please confirm your email, then sign in.' };
+    }
+
+    const profile = await getMemberByAuthId(data.user.id);
+    if (!profile) {
+      return { success: false, message: 'Account created, but your DTPBC member profile was not created. Please contact the executive team.' };
+    }
+
+    setCurrentUser(profile);
+    setAllMembers(prev => [...prev.filter(m => m.id !== profile.id), profile]);
+    return { success: true };
   };
 
   const updateProfile = (updatedData: Partial<User>) => {
     if (!currentUser) return;
-    const updated: User = {
-      ...currentUser,
-      ...updatedData,
-    };
+    const updated: User = { ...currentUser, ...updatedData };
     setCurrentUser(updated);
     setAllMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
-  };
-
-  const logout = () => {
-    setCurrentUser(null);
-  };
-
-  const switchDemoUser = (userId: string) => {
-    const found = allMembers.find(m => m.id === userId);
-    if (found) {
-      setCurrentUser(found);
+    if (supabase) {
+      supabase.from('members').update({
+        name: updated.name,
+        grade: updated.grade,
+        skill_level: updated.skillLevel,
+      }).eq('id', updated.id).then(({ error }) => {
+        if (error) console.warn('Supabase profile update error:', error.message);
+      });
     }
+  };
+
+  const logout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setCurrentUser(null);
   };
 
   const recordAttendance = (input: string): { success: boolean; studentName?: string; message: string } => {
@@ -384,7 +421,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup,
         updateProfile,
         logout,
-        switchDemoUser,
         sessions,
         addSession,
         updateSession,
