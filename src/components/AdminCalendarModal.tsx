@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ClubSession, GymLayoutOption } from '../types';
-import { Calendar, Plus, Trash2, Edit3, Check, Database, X, AlertTriangle } from 'lucide-react';
+import { Calendar, Plus, Trash2, Edit3, Check, X } from 'lucide-react';
 
 export const AdminCalendarModal: React.FC = () => {
   const { 
@@ -13,12 +13,12 @@ export const AdminCalendarModal: React.FC = () => {
     deleteSession,
     editingSession,
     setEditingSession,
-    supabaseConnected,
     currentUser
   } = useAuth();
 
   const [title, setTitle] = useState('');
   const [day, setDay] = useState('');
+  const [specificDate, setSpecificDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('DT Large Gymnasium');
   const [gymLayout, setGymLayout] = useState<GymLayoutOption>('4 Portable Pickleball Courts (Main Gym)');
@@ -31,6 +31,7 @@ export const AdminCalendarModal: React.FC = () => {
   const resetForm = () => {
     setTitle('');
     setDay('Every Tuesday & Thursday');
+    setSpecificDate('');
     setTime('3:15 PM – 4:45 PM');
     setLocation('DT Large Gymnasium');
     setGymLayout('4 Portable Pickleball Courts (Main Gym)');
@@ -45,6 +46,7 @@ export const AdminCalendarModal: React.FC = () => {
     if (editingSession) {
       setTitle(editingSession.title);
       setDay(editingSession.day);
+      setSpecificDate(editingSession.date || '');
       setTime(editingSession.time);
       setLocation(editingSession.location);
       setGymLayout(editingSession.gymLayout || '4 Portable Pickleball Courts (Main Gym)');
@@ -68,6 +70,7 @@ export const AdminCalendarModal: React.FC = () => {
         ...editingSession,
         title,
         day,
+        date: specificDate || undefined,
         time,
         location,
         gymLayout,
@@ -80,6 +83,7 @@ export const AdminCalendarModal: React.FC = () => {
       await addSession({
         title,
         day,
+        date: specificDate || undefined,
         time,
         location,
         gymLayout,
@@ -196,6 +200,17 @@ export const AdminCalendarModal: React.FC = () => {
               </div>
 
               <div>
+                <label className="block text-slate-800 font-semibold mb-1">Date</label>
+                <input
+                  type="date"
+                  value={specificDate}
+                  onChange={(e) => setSpecificDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white cursor-pointer"
+                  title="Choose the session date from the calendar"
+                />
+              </div>
+
+              <div>
                 <label className="block text-slate-800 font-semibold mb-1">Time</label>
                 <input
                   type="text"
@@ -209,7 +224,7 @@ export const AdminCalendarModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-slate-800 font-semibold mb-1">Gym Court Configuration</label>
+              <label className="block text-slate-800 font-semibold mb-1">Gym Location</label>
               <select
                 value={gymLayout}
                 onChange={(e) => setGymLayout(e.target.value as GymLayoutOption)}
