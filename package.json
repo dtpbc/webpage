@@ -35,7 +35,7 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^7.0.2",
-    "@cloudflare/vite-plugin": "^1.16.0",
-    "wrangler": "^4.44.0"
+    "@cloudflare/vite-plugin": "^1.62.4",
+    "wrangler": "^4.147.0"
   }
 }
