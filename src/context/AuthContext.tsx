@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, ClubSession, SpecialEvent, AttendanceRecord } from '../types';
-import { DEMO_MEMBERS, INITIAL_CLUB_SESSIONS, INITIAL_SPECIAL_EVENTS } from '../data/mockData';
+import { INITIAL_CLUB_SESSIONS, INITIAL_SPECIAL_EVENTS } from '../data/mockData';
 import { 
   isSupabaseConfigured,
   getRemoteSessions, 
@@ -54,7 +54,7 @@ const generateMemberId = () => `PB-${Math.floor(1000 + Math.random() * 9000)}`;
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [allMembers, setAllMembers] = useState<User[]>(() => {
     const saved = localStorage.getItem('dtpbc_members_v5');
-    const members: User[] = saved ? JSON.parse(saved) : DEMO_MEMBERS;
+    const members: User[] = saved ? JSON.parse(saved) : [];
 
     // Keep the club membership ID permanently separate from the school's student ID.
     // This also repairs older local records that may have accidentally reused the student ID.
@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('dtpbc_current_user_v5');
-    return saved ? JSON.parse(saved) : DEMO_MEMBERS[0]; // Noah Park (President, Grade 11, Admin)
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [sessions, setSessions] = useState<ClubSession[]>(() => {
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [userRegisteredEvents, setUserRegisteredEvents] = useState<string[]>(() => {
     const saved = localStorage.getItem('dtpbc_user_events_v5');
-    return saved ? JSON.parse(saved) : ['event-1'];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
