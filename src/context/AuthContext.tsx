@@ -49,9 +49,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Generate unique DTPBC Member ID (distinct from 7-digit school student ID)
-const generateMemberId = () => `PB-${Math.floor(1000 + Math.random() * 9000)}`;
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [allMembers, setAllMembers] = useState<User[]>(() => {
     const saved = localStorage.getItem('dtpbc_members_v5');
@@ -222,8 +219,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const rawId = (userData.studentId || '').replace(/\\D/g, '');
     const cleanId = rawId.length === 7 ? rawId : String(Math.floor(1000000 + Math.random() * 9000000));
-    const memberId = generateMemberId();
-
     const { data, error } = await supabase.auth.signUp({
       email: (userData.email || '').trim(),
       password,
@@ -233,7 +228,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           studentId: cleanId,
           grade: userData.grade || 'Grade 9',
           skillLevel: userData.skillLevel || 'Beginner (Learning Rules)',
-          memberId,
         },
       },
     });
@@ -262,8 +256,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(updated);
     setAllMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
     if (supabase) {
-      supabase.from('members').update({
-        name: updated.name,
+      supabase.from('profiles').update({
+        first_name: updated.name?.trim().split(/\s+/)[0] || updated.name,
+        last_name: updated.name?.trim().split(/\s+/).slice(1).join(' ') || '',
         grade: updated.grade,
         skill_level: updated.skillLevel,
       }).eq('id', updated.id).then(({ error }) => {
