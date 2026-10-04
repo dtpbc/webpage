@@ -54,7 +54,26 @@ const generateMemberId = () => `PB-${Math.floor(1000 + Math.random() * 9000)}`;
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [allMembers, setAllMembers] = useState<User[]>(() => {
     const saved = localStorage.getItem('dtpbc_members_v5');
-    return saved ? JSON.parse(saved) : DEMO_MEMBERS;
+    const members: User[] = saved ? JSON.parse(saved) : DEMO_MEMBERS;
+
+    // Keep the club membership ID permanently separate from the school's student ID.
+    // This also repairs older local records that may have accidentally reused the student ID.
+    const usedMemberIds = new Set<string>();
+    return members.map((member) => {
+      const existing = String(member.memberId || '').trim();
+      const looksLikeStudentId = /^\d{7}$/.test(existing) || existing === member.studentId;
+      if (existing && !looksLikeStudentId && !usedMemberIds.has(existing)) {
+        usedMemberIds.add(existing);
+        return member;
+      }
+
+      let replacement = '';
+      do {
+        replacement = generateMemberId();
+      } while (usedMemberIds.has(replacement));
+      usedMemberIds.add(replacement);
+      return { ...member, memberId: replacement };
+    });
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
