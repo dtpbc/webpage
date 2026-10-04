@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ClubSession, GymLayoutOption } from '../types';
+import { ClubSession } from '../types';
 import { Calendar, Plus, Trash2, Edit3, Check, X } from 'lucide-react';
 
 export const AdminCalendarModal: React.FC = () => {
@@ -21,7 +21,6 @@ export const AdminCalendarModal: React.FC = () => {
   const [specificDate, setSpecificDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('DT Large Gymnasium');
-  const [gymLayout, setGymLayout] = useState<GymLayoutOption>('4 Portable Pickleball Courts (Main Gym)');
   const [description, setDescription] = useState('');
   const [spotsOpen, setSpotsOpen] = useState('Open Drop-In for all Grades 8–12');
   const [coordinator, setCoordinator] = useState('Noah Park (President) & Mr. Willy Wan');
@@ -34,7 +33,6 @@ export const AdminCalendarModal: React.FC = () => {
     setSpecificDate('');
     setTime('3:15 PM – 4:45 PM');
     setLocation('DT Large Gymnasium');
-    setGymLayout('4 Portable Pickleball Courts (Main Gym)');
     setDescription('');
     setSpotsOpen('Open Drop-In for all Grades 8–12');
     setCoordinator(currentUser?.name ? `${currentUser.name} (Exec)` : 'Noah Park & Mr. Willy Wan');
@@ -49,7 +47,6 @@ export const AdminCalendarModal: React.FC = () => {
       setSpecificDate(editingSession.date || '');
       setTime(editingSession.time);
       setLocation(editingSession.location);
-      setGymLayout(editingSession.gymLayout || '4 Portable Pickleball Courts (Main Gym)');
       setDescription(editingSession.description);
       setSpotsOpen(editingSession.spotsOpen);
       setCoordinator(editingSession.coordinator);
@@ -73,7 +70,6 @@ export const AdminCalendarModal: React.FC = () => {
         date: specificDate || undefined,
         time,
         location,
-        gymLayout,
         description,
         spotsOpen,
         coordinator,
@@ -135,15 +131,6 @@ export const AdminCalendarModal: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-mono border bg-slate-50 border-slate-200">
-              <Database className="w-3.5 h-3.5 text-emerald-700" />
-              {supabaseConnected ? (
-                <span className="text-emerald-800 font-bold">Cloud Sync Connected</span>
-              ) : (
-                <span className="text-slate-600">Local Database Ready</span>
-              )}
-            </div>
-
             <button
               onClick={() => {
                 setIsAdminCalendarModalOpen(false);
@@ -221,19 +208,6 @@ export const AdminCalendarModal: React.FC = () => {
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white"
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-slate-800 font-semibold mb-1">Gym Location</label>
-              <select
-                value={gymLayout}
-                onChange={(e) => setGymLayout(e.target.value as GymLayoutOption)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white cursor-pointer"
-              >
-                <option value="4 Portable Pickleball Courts (Main Gym)">4 Portable Pickleball Courts (Main Gym)</option>
-                <option value="4 Badminton-Style Nets">4 Badminton-Style Nets (Lowered)</option>
-                <option value="8 Courts (Double Gym Combined)">8 Courts (Double Gym Combined)</option>
-              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -339,7 +313,6 @@ export const AdminCalendarModal: React.FC = () => {
                         <span className="text-slate-700 font-mono text-[11px] font-semibold">{s.time}</span>
                       </div>
                       <h5 className="font-bold text-slate-900 text-sm mt-0.5">{s.title}</h5>
-                      <p className="text-[10px] text-emerald-800 font-bold mt-0.5">{s.gymLayout}</p>
                       <p className="text-[11px] text-slate-600 line-clamp-1 mt-0.5">{s.description}</p>
                     </div>
 
