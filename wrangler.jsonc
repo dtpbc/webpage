@@ -1,11 +1,8 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "webpage",
+  "name": "web",
   "main": "./src/worker/index.ts",
   "compatibility_date": "2026-10-04",
-  "secrets": {
-    "required": ["WALLETWALLET_API_KEY"]
-  },
   "assets": {
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
