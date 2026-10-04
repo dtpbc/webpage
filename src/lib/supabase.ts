@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { ClubSession, SpecialEvent } from '../types';
+import { ClubSession, SpecialEvent, User } from '../types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -14,6 +14,45 @@ export const isSupabaseConfigured = Boolean(
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
+
+/**
+ * Supabase member/profile helpers.
+ * Authentication lives in Supabase Auth; club profile/role data lives in public.members.
+ */
+export async function getMemberByAuthId(authId: string): Promise<User | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from('members').select('*').eq('id', authId).maybeSingle();
+  if (error) {
+    console.warn('Supabase member fetch error:', error.message);
+    return null;
+  }
+  return data as User | null;
+}
+
+export async function getMemberByLogin(login: string): Promise<User | null> {
+  if (!supabase) return null;
+  const value = login.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from('members')
+    .select('*')
+    .or(`email.ilike.${value},student_id.eq.${value},member_id.ilike.${value}`)
+    .maybeSingle();
+  if (error) {
+    console.warn('Supabase member lookup error:', error.message);
+    return null;
+  }
+  return data as User | null;
+}
+
+export async function createMemberProfile(user: User): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('members').insert(user);
+  if (error) {
+    console.warn('Supabase member insert error:', error.message);
+    return false;
+  }
+  return true;
+}
 
 /**
  * Supabase SMTP Password Reset Helper
