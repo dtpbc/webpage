@@ -30,7 +30,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
     setStudentId(val);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -39,13 +39,23 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
       return;
     }
 
-    signup({
+    const result = await signup({
       name: fullName.trim(),
       studentId: studentId.trim(),
       grade,
       email: email.trim(),
       skillLevel,
-    });
+    }, password);
+
+    if (!result.success) {
+      setErrorMsg(result.message || 'Unable to create your account.');
+      return;
+    }
+
+    if (result.message) {
+      setErrorMsg(result.message);
+      return;
+    }
 
     onSignupSuccess();
   };
