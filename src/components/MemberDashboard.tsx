@@ -10,8 +10,7 @@ import {
   Scan,
   ShieldCheck,
   X,
-  Trash2,
-  WalletCards
+  Trash2
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
@@ -43,8 +42,6 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
   const [editGrade, setEditGrade] = useState(currentUser?.grade || 'Grade 10');
   const [editSkill, setEditSkill] = useState(currentUser?.skillLevel || 'Beginner (Learning Rules)');
   const [saveMessage, setSaveMessage] = useState(false);
-  const [walletLoading, setWalletLoading] = useState(false);
-  const [walletMessage, setWalletMessage] = useState('');
 
   // Generate REAL working QR code encoding both Member ID and Student ID
   useEffect(() => {
@@ -74,34 +71,6 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
     .join('')
     .slice(0, 2);
 
-  const handleAddToWallet = async () => {
-    setWalletLoading(true);
-    setWalletMessage('');
-    try {
-      const response = await fetch('/api/wallet/membership', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: currentUser.name,
-          memberId: currentUser.memberId,
-          grade: currentUser.grade,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.shareUrl) {
-        throw new Error(data?.error || 'Unable to create the wallet pass.');
-      }
-
-      window.open(data.shareUrl, '_blank', 'noopener,noreferrer');
-      setWalletMessage('Wallet pass ready — choose Apple Wallet or Google Wallet on the next page.');
-    } catch (error: any) {
-      setWalletMessage(error?.message || 'Unable to create the wallet pass.');
-    } finally {
-      setWalletLoading(false);
-    }
-  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,19 +258,6 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
             </div>
 
             <div className="space-y-2 mt-4">
-              <button
-                onClick={handleAddToWallet}
-                disabled={walletLoading}
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-white hover:bg-sky-50 disabled:opacity-60 disabled:cursor-wait transition-colors"
-              >
-                <WalletCards className="w-4 h-4" />
-                <span>{walletLoading ? 'Creating Wallet Pass…' : 'Add to Apple / Google Wallet'}</span>
-              </button>
-              {walletMessage && (
-                <p className="text-[10px] text-sky-200 text-center leading-relaxed">
-                  {walletMessage}
-                </p>
-              )}
               <p className="text-[11px] text-slate-300 text-center">
                 Scan with attendance terminal at gym doors
               </p>
