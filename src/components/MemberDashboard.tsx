@@ -340,7 +340,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
                 Earn Volunteer Hours
               </h3>
               <p className="text-xs text-emerald-100 mt-2 leading-relaxed">
-                Help with net setups, scorekeeping, and tournament refereeing. Volunteer hours are signed off by Mr. Wan or a DTPBC exec.
+                Help with net setups, scorekeeping, and tournament refereeing. Volunteer hours can be submitted through the club volunteer form.
               </p>
             </div>
 
@@ -355,7 +355,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
                 <ExternalLink className="w-4 h-4" />
               </a>
               <p className="text-[10px] text-emerald-200 text-center mt-2">
-                Signed off by Mr. Wan or DTPBC exec
+                Submit your completed volunteer hours through the form
               </p>
             </div>
           </div>
