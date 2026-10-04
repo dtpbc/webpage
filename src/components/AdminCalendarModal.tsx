@@ -82,7 +82,6 @@ export const AdminCalendarModal: React.FC = () => {
         date: specificDate || undefined,
         time,
         location,
-        gymLayout,
         description,
         spotsOpen,
         coordinator,
