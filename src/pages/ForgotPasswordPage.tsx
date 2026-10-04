@@ -59,7 +59,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
               Reset Your Password
             </h1>
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              Enter your email address below. We will dispatch a secure password reset link to your inbox.
+              Enter your email address below. We will send a secure password reset link to your inbox.
             </p>
           </div>
 
