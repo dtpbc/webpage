@@ -1,0 +1,6 @@
+{
+  "name": "DT Pickleball Club",
+  "description": "David Thompson Secondary School Pickleball Club in Vancouver, BC. 100% free student membership, gym drop-ins, member portal, and intramural tournaments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
