@@ -203,7 +203,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
                   <Trash2 className="w-4 h-4" /> Delete Member
                 </button>
               )}
-            </div>}
+            </div>
             {message && <p className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">{message}</p>}
           </div>
         </div>
