@@ -14,7 +14,8 @@ import {
   Trash2, 
   ChevronLeft, 
   ChevronRight,
-  Filter
+  Filter,
+  CalendarPlus
 } from 'lucide-react';
 
 interface SchedulePageProps {
@@ -39,6 +40,63 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<string | null>(null);
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date(2026, 9, 1)); // October 2026
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<number | null>(null);
+
+  const addToCalendar = (session: ClubSession) => {
+    if (!session.date) {
+      alert('This session does not have a specific date yet. Ask an executive to add a date before adding it to a calendar.');
+      return;
+    }
+
+    const parseTime = (value: string) => {
+      const match = value.match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+      if (!match) return null;
+      let hour = Number(match[1]);
+      const minute = Number(match[2]);
+      const meridiem = match[3].toUpperCase();
+      if (meridiem === 'PM' && hour !== 12) hour += 12;
+      if (meridiem === 'AM' && hour === 12) hour = 0;
+      return { hour, minute };
+    };
+
+    const times = session.time.split(/\\s*[–-]\\s*/);
+    const start = parseTime(times[0]);
+    const end = parseTime(times[1] || times[0]);
+    if (!start || !end) {
+      alert('The session time could not be read. Please use a format such as 3:15 PM – 4:45 PM.');
+      return;
+    }
+
+    const toUtcStamp = (date: string, time: {hour:number; minute:number}) => {
+      const local = new Date(date + 'T00:00:00');
+      local.setHours(time.hour, time.minute, 0, 0);
+      return local.toISOString().replace(/[-:]/g, '').replace(/\\.\\d{3}Z$/, 'Z');
+    };
+
+    const startStamp = toUtcStamp(session.date, start);
+    const endStamp = toUtcStamp(session.date, end);
+    const ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DTPBC//Club Schedule//EN','CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      'UID:' + session.id + '@dtpbc',
+      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\\.\\d{3}Z$/, 'Z'),
+      'DTSTART:' + startStamp,
+      'DTEND:' + endStamp,
+      'SUMMARY:' + session.title.replace(/[\\r\\n]/g, ' '),
+      'LOCATION:' + session.location.replace(/[\\r\\n]/g, ' '),
+      'DESCRIPTION:' + (session.description + '\\nGym setup: ' + session.gymLayout).replace(/[\\r\\n]/g, '\\\\n'),
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\\r\\n');
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = session.title.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() + '.ics';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const handleReminder = (sessionId: string) => {
     setRemindedSessionId(sessionId);
@@ -394,6 +452,15 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                         {session.spotsOpen}
                       </span>
 
+                      {session.date && (
+                        <button
+                          onClick={() => addToCalendar(session)}
+                          className="px-3 py-2 rounded-lg text-xs font-bold text-sky-900 bg-sky-50 hover:bg-sky-600 hover:text-white border border-sky-200 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+                        >
+                          <CalendarPlus className="w-3.5 h-3.5" />
+                          Add to Calendar
+                        </button>
+                      )}
                       <button
                         onClick={() => handleReminder(session.id)}
                         className="px-4 py-2 rounded-lg text-xs font-bold text-slate-800 bg-slate-100 hover:bg-sky-600 hover:text-white border border-slate-300 transition-colors cursor-pointer whitespace-nowrap"
