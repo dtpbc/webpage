@@ -7,8 +7,8 @@ interface SponsorsPageProps {
 }
 
 const SPONSORS: { name: string; logo: string }[] = [
-   { name: 'Photo Crumb Studios', logo: '/sponsors/images.jpg' }
-  { name: 'K8 Strings', logo: '/sponsors/cropped-k8strings-logo1-scaled.png' }
+   { name: 'Photo Crumb Studios', logo: '/sponsors/images.jpg' },
+  { name: 'K8 Strings', logo: '/sponsors/cropped-k8strings-logo1-scaled.png' },
   { name: 'Rackets & Runners', logo: '/sponsors/channels4_profile.jpg' }
 ];
 
