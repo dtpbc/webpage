@@ -489,8 +489,20 @@ create policy "DTPBC admin events delete"
 on public.events for delete to authenticated
 using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
 
--- Remove the old placeholder schedule/event rows.
-delete from public.sessions where id in ('session-1','session-2','session-3','session-4');
-delete from public.events where id in ('event-1','event-2','event-3');
+-- Normalize legacy schedule/event IDs to text.
+-- Older versions of the site could have created these IDs as UUIDs, while
+-- the current app uses IDs such as "session-123" and "event-123".
+alter table public.sessions
+  alter column id type text using id::text;
+
+alter table public.events
+  alter column id type text using id::text;
+
+-- Remove old placeholder rows from the current text-based tables.
+delete from public.sessions
+where id in ('session-1','session-2','session-3','session-4');
+
+delete from public.events
+where id in ('event-1','event-2','event-3');
 
 notify pgrst, 'reload schema';
