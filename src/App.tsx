@@ -18,6 +18,7 @@ import { SignUpPage } from './pages/SignUpPage';
 import { LoginPage } from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AttendancePage } from './pages/AttendancePage';
+import { RosterPage } from './pages/RosterPage';
 import { Footer } from './components/Footer';
 
 function parseRouteFromPath(): AppRoute {
@@ -31,6 +32,7 @@ function parseRouteFromPath(): AppRoute {
   if (path === 'forgot-password' || path === 'forgotpassword' || path === 'reset-password') return 'forgot-password';
   if (path === 'portal' || path === 'dashboard') return 'portal';
   if (path === 'attendance' || path === 'scanner') return 'attendance';
+  if (path === 'roster') return 'roster';
   return 'home';
 }
 
@@ -94,6 +96,8 @@ function AppContent() {
             onNavigateLogin={() => navigate('login')}
             onNavigateHome={() => navigate('home')}
           />
+        ) : currentRoute === 'roster' ? (
+          <RosterPage onNavigateHome={() => navigate('home')} />
         ) : currentRoute === 'attendance' ? (
           <AttendancePage
             onNavigateHome={() => navigate('home')}
