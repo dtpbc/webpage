@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, ExternalLink, Mail, ShieldCheck } from 'lucide-react';
+import { MapPin, ExternalLink, Mail, ShieldCheck, Instagram, MessageCircle, Linkedin, Users } from 'lucide-react';
 import { AppRoute } from './Navbar';
 
 interface FooterProps {
@@ -109,6 +109,35 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
                 </a>
               </li>
             </ul>
+          </div>
+
+          {/* Social & Community */}
+          <div className="space-y-2">
+            <p className="font-semibold text-white uppercase tracking-wider text-[11px]">
+              Join Our Community
+            </p>
+            <div className="space-y-1.5 text-xs">
+              <a href="https://www.instagram.com/dt.pickleball/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+                <Instagram className="w-3.5 h-3.5 text-pink-300" />
+                <span>Instagram · @dt.pickleball</span>
+              </a>
+              <a href="https://chat.whatsapp.com/Lsfb3JPQkHr8hzE0CeUWwm" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                <span>WhatsApp Community</span>
+              </a>
+              <a href="https://discord.gg/VwPed6wGru" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+                <MessageCircle className="w-3.5 h-3.5 text-indigo-300" />
+                <span>Discord Community</span>
+              </a>
+              <a href="https://www.linkedin.com/in/dt-pickleball-club-0b6866387" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+                <Linkedin className="w-3.5 h-3.5 text-sky-300" />
+                <span>LinkedIn</span>
+              </a>
+              <a href="https://mailchi.mp/49bb5379194b/email" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+                <Mail className="w-3.5 h-3.5 text-amber-300" />
+                <span>Join the Mailing List</span>
+              </a>
+            </div>
           </div>
 
           {/* School Contact & Emails */}
