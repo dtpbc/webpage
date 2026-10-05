@@ -26,7 +26,7 @@ function parseRouteFromPath(): AppRoute {
   if (!path || path === 'home') return 'home';
   if (path === 'schedule') return 'schedule';
   if (path === 'execs') return 'execs';
-  if (path === 'merch') return 'merch';
+  if (path === 'fundraising' || path === 'merch') return 'fundraising';
   if (path === 'login') return 'login';
   if (path === 'signup' || path === 'sign-up') return 'signup';
   if (path === 'forgot-password' || path === 'forgotpassword' || path === 'reset-password') return 'forgot-password';
@@ -73,7 +73,7 @@ function AppContent() {
             onNavigateHome={() => navigate('home')}
             onNavigateSignUp={() => navigate('signup')}
           />
-        ) : currentRoute === 'merch' ? (
+        ) : currentRoute === 'fundraising' ? (
           <MerchPage
             onNavigateHome={() => navigate('home')}
             onNavigateSignUp={() => navigate('signup')}
