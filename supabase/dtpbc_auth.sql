@@ -290,19 +290,45 @@ drop policy if exists "DTPBC authenticated attendance read" on public.attendance
 create policy "DTPBC authenticated attendance read"
 on public.attendance for select
 to authenticated
-using (true);
+using (
+  member_id = (
+    select p.member_id
+    from public.profiles p
+    where p.id = auth.uid()
+  )
+  or exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role in ('executive', 'sponsor_teacher')
+  )
+);
 
 drop policy if exists "DTPBC authenticated attendance insert" on public.attendance;
 create policy "DTPBC authenticated attendance insert"
 on public.attendance for insert
 to authenticated
-with check (true);
+with check (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role in ('executive', 'sponsor_teacher')
+  )
+);
 
 drop policy if exists "DTPBC authenticated attendance delete" on public.attendance;
 create policy "DTPBC authenticated attendance delete"
 on public.attendance for delete
 to authenticated
-using (true);
+using (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role in ('executive', 'sponsor_teacher')
+  )
+);
 
 create index if not exists attendance_event_id_idx
 on public.attendance(event_id);
