@@ -105,6 +105,42 @@ export async function deleteRemoteMember(memberId: string): Promise<{ success: b
   return { success: true };
 }
 
+
+export interface AdminUserInput {
+  id?: string;
+  name: string;
+  email: string;
+  studentId: string;
+  memberId: string;
+  grade: User['grade'];
+  skillLevel: User['skillLevel'];
+  role: User['role'];
+}
+
+export async function adminManageUser(input: AdminUserInput, action: 'create' | 'update') {
+  if (!supabase) return { success: false, message: 'Supabase is not configured.' };
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) return { success: false, message: 'Your session has expired. Please sign in again.' };
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/dtpbc-admin-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        apikey: supabaseAnonKey,
+      },
+      body: JSON.stringify({ ...input, action }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) return { success: false, message: data.message || 'Unable to manage user.' };
+    return data;
+  } catch (error: any) {
+    return { success: false, message: error?.message || 'Unable to contact the user-management service.' };
+  }
+}
+
 export async function getMemberByLogin(login: string): Promise<User | null> {
   if (!supabase) return null;
   const value = login.trim().toLowerCase();
