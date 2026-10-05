@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, KeyRound, Search, ShieldCheck, Trash2, UserRound, X, UserCog } from 'lucide-react';
+import { ArrowLeft, KeyRound, Search, ShieldCheck, Trash2, X, UserCog, Pencil, Plus, Save } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { requestPasswordReset } from '../lib/supabase';
+import { adminManageUser, requestPasswordReset } from '../lib/supabase';
 import { User } from '../types';
 
 interface RosterPageProps {
@@ -15,6 +15,10 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [promoting, setPromoting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', studentId: '', memberId: '', grade: 'Grade 10' as User['grade'], skillLevel: 'Beginner (Learning Rules)' as User['skillLevel'], role: 'member' as User['role'] });
 
   useEffect(() => {
     if (isAdmin) refreshRoster();
@@ -38,6 +42,29 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
       </div>
     );
   }
+
+  const startEdit = () => {
+    if (!selected) return;
+    setForm({ name: selected.name, email: selected.email, studentId: selected.studentId, memberId: selected.memberId, grade: selected.grade, skillLevel: selected.skillLevel, role: selected.role });
+    setEditing(true); setMessage('');
+  };
+
+  const startAdd = () => {
+    setSelected(null);
+    setForm({ name: '', email: '', studentId: '', memberId: '', grade: 'Grade 10', skillLevel: 'Beginner (Learning Rules)', role: 'member' });
+    setAdding(true); setEditing(true); setMessage('');
+  };
+
+  const saveProfile = async () => {
+    if (!form.name.trim() || !form.email.trim()) { setMessage('Name and email are required.'); return; }
+    setSaving(true); setMessage('');
+    const result = await adminManageUser({ ...form, id: selected?.id }, adding ? 'create' : 'update');
+    if (result.success) {
+      await refreshRoster(); setEditing(false); setAdding(false); setSelected(null);
+      setMessage(result.message || 'Profile saved successfully.');
+    } else setMessage(result.message || 'Unable to save profile.');
+    setSaving(false);
+  };
 
   const handleReset = async () => {
     if (!selected?.email) return;
@@ -98,7 +125,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
 
         <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-            <div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} staff</div>
+            <div className="flex items-center justify-between gap-3"><div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} staff</div><button onClick={startAdd} className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm px-4 py-2.5"><Plus className="w-4 h-4" /> Add User Manually</button></div>
             <label className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, ID..." className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm outline-none focus:border-sky-500 focus:bg-white" />
@@ -133,7 +160,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
         </div>
       </div>
 
-      {selected && (
+      {(selected || adding) && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 p-0 sm:p-4">
           <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl p-5 sm:p-7">
             <div className="flex items-start justify-between gap-4">
@@ -154,11 +181,18 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] font-bold uppercase text-slate-500">Student ID</div><div className="text-sm font-mono font-semibold mt-1">#{selected.studentId}</div></div>
             </div>
 
-            <div className="mt-5 space-y-2">
-              <button disabled={busy || promoting || !selected.email} onClick={handleReset} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-bold text-sm py-3">
+            {editing ? <div className="mt-6 space-y-3">
+              {([['name','Name'],['email','Email'],['studentId','Student ID'],['memberId','DTPBC Member ID']] as const).map(([key,label]) => <label key={key} className="block text-xs font-bold text-slate-600">{label}<input value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>)}
+              <div className="grid grid-cols-2 gap-3"><label className="text-xs font-bold text-slate-600">Grade<select value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value as User['grade'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{['Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','Staff / Teacher'].map(v => <option key={v}>{v}</option>)}</select></label><label className="text-xs font-bold text-slate-600">Role<select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as User['role'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="member">Member</option><option value="executive">Executive</option><option value="sponsor_teacher">Teacher Sponsor</option></select></label></div>
+              <label className="block text-xs font-bold text-slate-600">Skill Level<select value={form.skillLevel} onChange={e => setForm({ ...form, skillLevel: e.target.value as User['skillLevel'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{['Beginner (Learning Rules)','Intermediate (Consistent Rallies)','Advanced (Competitive Play)'].map(v => <option key={v}>{v}</option>)}</select></label>
+              <button disabled={saving} onClick={saveProfile} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm py-3 disabled:opacity-50"><Save className="w-4 h-4" /> {saving ? 'Saving…' : adding ? 'Create User & Send Reset Email' : 'Save Profile'}</button>
+              <button disabled={saving} onClick={() => { setEditing(false); setAdding(false); }} className="w-full rounded-xl border border-slate-300 text-slate-700 font-bold text-sm py-3">Cancel</button>
+            </div> : <div className="mt-5 space-y-2">
+              <button disabled={busy || promoting || editing || !selected.email} onClick={handleReset} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-bold text-sm py-3">
                 <KeyRound className="w-4 h-4" /> Send Password Reset
               </button>
-              {selected.role === 'member' && <button disabled={busy || promoting} onClick={handlePromote} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-sm py-3 disabled:opacity-50">
+              <button disabled={busy || promoting || editing} onClick={startEdit} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm py-3"><Pencil className="w-4 h-4" /> Edit Profile</button>
+              {selected.role === 'member' && <button disabled={busy || promoting || editing} onClick={handlePromote} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-sm py-3 disabled:opacity-50">
                 <UserCog className="w-4 h-4" /> Make Executive
               </button>}
               {selected.role === 'member' && selected.id !== currentUser.id && (
@@ -166,7 +200,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
                   <Trash2 className="w-4 h-4" /> Delete Member
                 </button>
               )}
-            </div>
+            </div>}
             {message && <p className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">{message}</p>}
           </div>
         </div>
