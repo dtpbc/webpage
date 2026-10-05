@@ -296,7 +296,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                         <div className="space-y-0.5">
                           <p className="text-xs font-bold text-slate-900">
                             {att.studentName}
-                          </p>{att.memberId === 'GUEST' && <span className="px-2 py-0.5 rounded bg-slate-300 text-slate-600 text-[9px] font-bold">GUEST</span>}
+                          </p>{att.memberId === 'GUEST' && <span className="px-2 py-0.5 rounded bg-slate-300 text-slate-600 text-[9px] font-bold">GUEST</span>}{att.memberId === 'GUEST' && <span className="px-2 py-0.5 rounded bg-slate-300 text-slate-600 text-[9px] font-bold">GUEST</span>}
                           <p className="text-[11px] text-slate-600 font-mono">
                             {att.memberId === 'GUEST' ? 'Guest' : `School #${att.studentId} · Club ${att.memberId}`} · {att.grade}
                           </p>
