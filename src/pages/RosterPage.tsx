@@ -20,10 +20,9 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
     if (isAdmin) refreshRoster();
   }, [isAdmin]);
 
-  const members = useMemo(() => {
+  const roster = useMemo(() => {
     const q = search.trim().toLowerCase();
     return allMembers
-      .filter(member => member.role === 'member')
       .filter(member => !q || [member.name, member.email, member.memberId, member.studentId, member.grade].some(v => v.toLowerCase().includes(q)));
   }, [allMembers, search]);
 
@@ -65,7 +64,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
   };
 
   const handleDelete = async () => {
-    if (!selected || selected.id === currentUser.id) return;
+    if (!selected || selected.role !== 'member' || selected.id === currentUser.id) return;
     if (!window.confirm(`Delete ${selected.name} from the DTPBC roster and sign-in system? This cannot be undone.`)) return;
     setBusy(true);
     setMessage('');
@@ -94,12 +93,12 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
         <div className="mb-7">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2">Private Staff Area</p>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Member Roster</h1>
-          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">Real DTPBC student accounts only. Executive officers and the teacher sponsor are not counted as members in this roster.</p>
+          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members.</p>
         </div>
 
         <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-            <div className="text-sm font-bold text-slate-900">{members.length} member{members.length === 1 ? '' : 's'}</div>
+            <div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} staff</div>
             <label className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, ID..." className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm outline-none focus:border-sky-500 focus:bg-white" />
@@ -107,9 +106,9 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
           </div>
 
           <div className="divide-y divide-slate-100">
-            {members.length === 0 ? (
-              <div className="p-10 text-center text-sm text-slate-500">No real member accounts match your search.</div>
-            ) : members.map(member => (
+            {roster.length === 0 ? (
+              <div className="p-10 text-center text-sm text-slate-500">No DTPBC accounts match your search.</div>
+            ) : roster.map(member => (
               <button key={member.id} onClick={() => { setSelected(member); setMessage(''); }} className="w-full text-left p-4 sm:p-5 hover:bg-sky-50/60 transition-colors">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <div className="w-11 h-11 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sm font-extrabold text-sky-900 shrink-0">
@@ -159,10 +158,10 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
               <button disabled={busy || promoting || !selected.email} onClick={handleReset} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-bold text-sm py-3">
                 <KeyRound className="w-4 h-4" /> Send Password Reset
               </button>
-              <button disabled={busy || promoting} onClick={handlePromote} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-sm py-3 disabled:opacity-50">
+              {selected.role === 'member' && <button disabled={busy || promoting} onClick={handlePromote} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-sm py-3 disabled:opacity-50">
                 <UserCog className="w-4 h-4" /> Make Executive
-              </button>
-              {selected.id !== currentUser.id && (
+              </button>}
+              {selected.role === 'member' && selected.id !== currentUser.id && (
                 <button disabled={busy || promoting} onClick={handleDelete} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-sm py-3 disabled:opacity-50">
                   <Trash2 className="w-4 h-4" /> Delete Member
                 </button>
