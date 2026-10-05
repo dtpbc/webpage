@@ -43,6 +43,7 @@ interface AuthContextType {
   clearAttendance: () => void;
   refreshRoster: () => Promise<void>;
   deleteMember: (memberId: string) => Promise<{ success: boolean; message?: string }>;
+  promoteMemberToExecutive: (memberId: string) => Promise<{ success: boolean; message?: string }>;
   // Admin Calendar Modal
   isAdminCalendarModalOpen: boolean;
   setIsAdminCalendarModalOpen: (open: boolean) => void;
@@ -113,6 +114,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAllMembers(roster);
       localStorage.setItem('dtpbc_members_v5', JSON.stringify(roster));
     }
+  };
+
+  const promoteMemberToExecutive = async (memberId: string) => {
+    if (!isAdmin) return { success: false, message: 'Executive or teacher sponsor access required.' };
+    const result = await promoteRemoteMemberToExecutive(memberId);
+    if (result.success) await refreshRoster();
+    return result;
   };
 
   const deleteMember = async (memberId: string) => {
@@ -436,6 +444,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearAttendance,
         refreshRoster,
         deleteMember,
+        promoteMemberToExecutive,
         isAdminCalendarModalOpen,
         setIsAdminCalendarModalOpen,
         editingSession,
