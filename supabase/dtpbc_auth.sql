@@ -269,6 +269,18 @@ revoke all on function public.promote_dtpbc_member_to_executive(uuid) from publi
 grant execute on function public.promote_dtpbc_member_to_executive(uuid) to authenticated;
 
 
+
+-- Shared staff-role helper for RLS policies.
+create or replace function public.is_dtpbc_staff()
+returns boolean
+language sql stable security definer
+set search_path = public
+as $
+  select exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher'));
+$;
+revoke all on function public.is_dtpbc_staff() from public;
+grant execute on function public.is_dtpbc_staff() to authenticated;
+
 -- Attendance policy helper. SECURITY DEFINER avoids depending on the caller's
 -- direct/RLS visibility into profiles while evaluating attendance policies.
 create or replace function public.get_dtpbc_current_profile()
@@ -421,8 +433,7 @@ grant execute on function public.manage_dtpbc_fundraising_item(uuid, text, jsonb
 create table if not exists public.sessions (
   id text primary key,
   title text not null,
-  day text not null,
-  date text,
+    date text,
   time text not null,
   location text not null,
   "gymLayout" text not null default '4 Portable Pickleball Courts (Main Gym)',
@@ -431,6 +442,8 @@ create table if not exists public.sessions (
   coordinator text not null default '',
   status text not null default 'Open'
 );
+
+alter table public.sessions drop column if exists day;
 
 create table if not exists public.events (
   id text primary key,
@@ -454,42 +467,27 @@ to anon, authenticated
 using (true);
 
 drop policy if exists "DTPBC admin schedule insert" on public.sessions;
-create policy "DTPBC admin schedule insert"
-on public.sessions for insert to authenticated
-with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+create policy "DTPBC admin schedule insert" on public.sessions for insert to authenticated with check (public.is_dtpbc_staff());
 
 drop policy if exists "DTPBC admin schedule update" on public.sessions;
-create policy "DTPBC admin schedule update"
-on public.sessions for update to authenticated
-using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')))
-with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+create policy "DTPBC admin schedule update" on public.sessions for update to authenticated using (public.is_dtpbc_staff()) with check (public.is_dtpbc_staff());
 
 drop policy if exists "DTPBC admin schedule delete" on public.sessions;
-create policy "DTPBC admin schedule delete"
-on public.sessions for delete to authenticated
-using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+create policy "DTPBC admin schedule delete" on public.sessions for delete to authenticated using (public.is_dtpbc_staff());
 
 drop policy if exists "DTPBC public events read" on public.events;
-create policy "DTPBC public events read"
 on public.events for select
 to anon, authenticated
 using (true);
 
 drop policy if exists "DTPBC admin events insert" on public.events;
-create policy "DTPBC admin events insert"
-on public.events for insert to authenticated
-with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+create policy "DTPBC admin events insert" on public.events for insert to authenticated with check (public.is_dtpbc_staff());
 
 drop policy if exists "DTPBC admin events update" on public.events;
-create policy "DTPBC admin events update"
-on public.events for update to authenticated
-using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')))
-with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+create policy "DTPBC admin events update" on public.events for update to authenticated using (public.is_dtpbc_staff()) with check (public.is_dtpbc_staff());
 
 drop policy if exists "DTPBC admin events delete" on public.events;
-create policy "DTPBC admin events delete"
-on public.events for delete to authenticated
-using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+create policy "DTPBC admin events delete" on public.events for delete to authenticated using (public.is_dtpbc_staff());
 
 -- Normalize legacy schedule/event IDs to text.
 -- Older versions of the site could have created these IDs as UUIDs, while
