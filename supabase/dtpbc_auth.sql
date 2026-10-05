@@ -476,6 +476,7 @@ drop policy if exists "DTPBC admin schedule delete" on public.sessions;
 create policy "DTPBC admin schedule delete" on public.sessions for delete to authenticated using (public.is_dtpbc_staff());
 
 drop policy if exists "DTPBC public events read" on public.events;
+create policy "DTPBC public events read"
 on public.events for select
 to anon, authenticated
 using (true);
