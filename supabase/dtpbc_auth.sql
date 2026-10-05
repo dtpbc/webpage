@@ -91,3 +91,24 @@ where id = 'a41392d9-14c3-4f40-a21b-e6b32e5b9765';
 -- Verify:
 -- select id, first_name, last_name, role, member_id, student_id, grade, email
 -- from public.profiles;
+
+
+-- Allow login by 7-digit school ID or PB-#### without exposing the
+-- profile table directly. This function only returns the matching email.
+create or replace function public.get_dtpbc_login_email(login_value text)
+returns text
+language sql
+security definer
+set search_path = ''
+as $$
+  select p.email
+  from public.profiles p
+  where lower(trim(p.email)) = lower(trim(login_value))
+     or lower(trim(p.member_id)) = lower(trim(login_value))
+     or trim(p.student_id) = trim(login_value)
+  limit 1;
+$$;
+
+revoke all on function public.get_dtpbc_login_email(text) from public;
+grant execute on function public.get_dtpbc_login_email(text) to anon, authenticated;
+
