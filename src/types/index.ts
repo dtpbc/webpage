@@ -55,6 +55,17 @@ export interface AttendanceRecord {
 
 export interface RosterMember extends User {}
 
+export interface FundraisingItem {
+  id: string;
+  title: string;
+  description: string;
+  price: string;
+  source: string;
+  howToGet: string;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface ExecutiveMember {
   name: string;
   role: string;
