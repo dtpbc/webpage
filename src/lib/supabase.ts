@@ -201,6 +201,36 @@ export async function requestPasswordReset(email: string): Promise<{ success: bo
   }
 }
 
+export async function getFundraisingItems(): Promise<import('../types').FundraisingItem[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('get_dtpbc_fundraising_items');
+  if (error || !Array.isArray(data)) return null;
+  return data.map((row: any) => ({
+    id: row.id, title: row.title, description: row.description || '',
+    price: row.price || '', source: row.source || '',
+    howToGet: row.how_to_get || '', active: row.active !== false,
+    createdAt: row.created_at || '',
+  }));
+}
+
+export interface FundraisingItemInput {
+  id?: string; title: string; description: string; price: string;
+  source: string; howToGet: string; active?: boolean;
+}
+
+export async function manageFundraisingItem(input: FundraisingItemInput, action: 'create' | 'update' | 'delete') {
+  if (!supabase) return { success: false, message: 'Supabase is not configured.' };
+  const { data, error } = await supabase.rpc('manage_dtpbc_fundraising_item', {
+    item_id: input.id || null, action,
+    item_data: {
+      title: input.title, description: input.description, price: input.price,
+      source: input.source, how_to_get: input.howToGet, active: input.active !== false,
+    },
+  });
+  if (error) return { success: false, message: error.message };
+  return data || { success: false, message: 'Unable to update fundraising information.' };
+}
+
 export async function getRemoteSessions(): Promise<ClubSession[] | null> {
   if (!supabase) return null;
   try {
