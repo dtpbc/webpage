@@ -21,6 +21,7 @@ export const AdminCalendarModal: React.FC = () => {
   const [specificDate, setSpecificDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('DT Large Gymnasium');
+  const [gymLayout, setGymLayout] = useState<ClubSession['gymLayout']>('4 Portable Pickleball Courts (Main Gym)');
   const [description, setDescription] = useState('');
   const [spotsOpen, setSpotsOpen] = useState('Open Drop-In for all Grades 8–12');
   const [coordinator, setCoordinator] = useState('Noah Park (President) & Mr. Willy Wan');
@@ -33,6 +34,7 @@ export const AdminCalendarModal: React.FC = () => {
     setSpecificDate('');
     setTime('3:15 PM – 4:45 PM');
     setLocation('DT Large Gymnasium');
+    setGymLayout('4 Portable Pickleball Courts (Main Gym)');
     setDescription('');
     setSpotsOpen('Open Drop-In for all Grades 8–12');
     setCoordinator(currentUser?.name ? `${currentUser.name} (Exec)` : 'Noah Park & Mr. Willy Wan');
@@ -47,6 +49,7 @@ export const AdminCalendarModal: React.FC = () => {
       setSpecificDate(editingSession.date || '');
       setTime(editingSession.time);
       setLocation(editingSession.location);
+      setGymLayout(editingSession.gymLayout || '4 Portable Pickleball Courts (Main Gym)');
       setDescription(editingSession.description);
       setSpotsOpen(editingSession.spotsOpen);
       setCoordinator(editingSession.coordinator);
@@ -70,6 +73,7 @@ export const AdminCalendarModal: React.FC = () => {
         date: specificDate || undefined,
         time,
         location,
+        gymLayout,
         description,
         spotsOpen,
         coordinator,
@@ -82,6 +86,7 @@ export const AdminCalendarModal: React.FC = () => {
         date: specificDate || undefined,
         time,
         location,
+        gymLayout,
         description,
         spotsOpen,
         coordinator,
