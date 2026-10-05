@@ -68,7 +68,6 @@ export const AdminCalendarModal: React.FC = () => {
       await updateSession({
         ...editingSession,
         title,
-        day: '',
         date: specificDate,
         time,
         location,
@@ -81,7 +80,6 @@ export const AdminCalendarModal: React.FC = () => {
     } else {
       await addSession({
         title,
-        day: '',
         date: specificDate,
         time,
         location,
