@@ -12,6 +12,10 @@ import {
   deleteRemoteSession,
   getRemoteEvents,
   upsertRemoteEvent,
+  getRemoteAttendance,
+  upsertRemoteAttendance,
+  deleteRemoteAttendance,
+  clearRemoteAttendance,
   deleteRemoteEvent
 } from '../lib/supabase';
 
@@ -38,9 +42,9 @@ interface AuthContextType {
   userRegisteredEvents: string[];
   // Attendance records for barcode / QR scanner
   attendanceRecords: AttendanceRecord[];
-  recordAttendance: (input: string) => { success: boolean; studentName?: string; message: string };
-  removeAttendanceRecord: (recordId: string) => void;
-  clearAttendance: () => void;
+  recordAttendance: (input: string, eventId: string) => { success: boolean; studentName?: string; message: string };
+  removeAttendanceRecord: (recordId: string) => Promise<void>;
+  clearAttendance: () => Promise<void>;
   refreshRoster: () => Promise<void>;
   deleteMember: (memberId: string) => Promise<{ success: boolean; message?: string }>;
   promoteMemberToExecutive: (memberId: string) => Promise<{ success: boolean; message?: string }>;
@@ -79,27 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
     const saved = localStorage.getItem('dtpbc_attendance_v5');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 'att-1',
-        memberId: 'PB-1001',
-        studentId: '1842109',
-        studentName: 'Noah Park',
-        grade: 'Grade 11',
-        timestamp: 'Today at 3:18 PM',
-        scannedBy: 'Mr. Willy Wan',
-      },
-      {
-        id: 'att-2',
-        memberId: 'PB-1002',
-        studentId: '1910432',
-        studentName: 'Karson Kung',
-        grade: 'Grade 9',
-        timestamp: 'Today at 3:20 PM',
-        scannedBy: 'Noah Park (President)',
-      }
-    ];
-  });
+    return saved ? JSON.parse(saved) : [];  });
 
   const [isAdminCalendarModalOpen, setIsAdminCalendarModalOpen] = useState<boolean>(false);
   const [editingSession, setEditingSession] = useState<ClubSession | null>(null);
@@ -162,6 +146,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (remoteSessions && remoteSessions.length > 0) {
           setSessions(remoteSessions);
           localStorage.setItem('dtpbc_sessions_v5', JSON.stringify(remoteSessions));
+        }
+      });
+      getRemoteAttendance().then(remoteAttendance => {
+        if (remoteAttendance) {
+          setAttendanceRecords(remoteAttendance);
+          localStorage.setItem('dtpbc_attendance_v5', JSON.stringify(remoteAttendance));
         }
       });
       getRemoteEvents().then(remoteEvents => {
@@ -283,7 +273,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(null);
   };
 
-  const recordAttendance = (input: string): { success: boolean; studentName?: string; message: string } => {
+  const recordAttendance = (input: string, eventId: string): { success: boolean; studentName?: string; message: string } => {
+    if (!eventId) return { success: false, message: 'Please select an event before recording attendance.' };
+    const event = events.find(e => e.id === eventId);
+    if (!event) return { success: false, message: 'Selected event could not be found.' };
     const query = input.trim().toLowerCase();
     const cleanId = input.replace(/\D/g, '');
 
@@ -303,7 +296,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // DO NOT allow the same person to be checked in multiple times!
     const alreadyCheckedIn = attendanceRecords.find(
-      a => a.studentId === member.studentId || a.memberId === member.memberId
+      a => a.eventId === eventId && (a.studentId === member.studentId || a.memberId === member.memberId)
     );
     if (alreadyCheckedIn) {
       return {
@@ -321,9 +314,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       grade: member.grade,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       scannedBy: currentUser?.name || 'Scanner',
+      eventId,
+      eventTitle: event.title,
     };
 
     setAttendanceRecords(prev => [newRecord, ...prev]);
+    if (isSupabaseConfigured) {
+      upsertRemoteAttendance(newRecord).catch(e => console.warn('Attendance save error:', e));
+    }
     return {
       success: true,
       studentName: member.name,
@@ -331,12 +329,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  const removeAttendanceRecord = (recordId: string) => {
+  const removeAttendanceRecord = async (recordId: string) => {
     setAttendanceRecords(prev => prev.filter(a => a.id !== recordId));
+    if (isSupabaseConfigured) await deleteRemoteAttendance(recordId);
   };
 
-  const clearAttendance = () => {
+  const clearAttendance = async () => {
     setAttendanceRecords([]);
+    if (isSupabaseConfigured) await clearRemoteAttendance();
   };
 
   const addSession = async (sessionData: Omit<ClubSession, 'id'>) => {
