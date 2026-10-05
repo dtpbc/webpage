@@ -120,7 +120,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
         <div className="mb-7">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2">Private Staff Area</p>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Member Roster</h1>
-          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members. Admins are only executives and teacher sponsors; there is no separate admin role.</p>
+          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members. Admins are only executives and teacher sponsors; there is no separate admin role. Admins are only executives and teacher sponsors; there is no separate admin role.</p>
         </div>
 
         <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
