@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { ClubSession, SpecialEvent, User } from '../types';
+import { AttendanceRecord, ClubSession, SpecialEvent, User } from '../types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -261,4 +261,59 @@ export async function deleteRemoteEvent(eventId: string): Promise<boolean> {
     console.warn('Supabase delete event exception:', err);
     return false;
   }
+}
+
+
+export async function getRemoteAttendance(): Promise<AttendanceRecord[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from('attendance').select('*').order('created_at', { ascending: false });
+  if (error) {
+    console.warn('Supabase fetch attendance error:', error.message);
+    return null;
+  }
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    memberId: row.member_id,
+    studentId: row.student_id,
+    studentName: row.student_name,
+    grade: row.grade,
+    timestamp: row.timestamp,
+    scannedBy: row.scanned_by,
+    eventId: row.event_id,
+    eventTitle: row.event_title,
+  })) as AttendanceRecord[];
+}
+
+export async function upsertRemoteAttendance(record: AttendanceRecord): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('attendance').upsert({
+    id: record.id,
+    member_id: record.memberId,
+    student_id: record.studentId,
+    student_name: record.studentName,
+    grade: record.grade,
+    timestamp: record.timestamp,
+    scanned_by: record.scannedBy,
+    event_id: record.eventId,
+    event_title: record.eventTitle,
+  });
+  if (error) {
+    console.warn('Supabase save attendance error:', error.message);
+    return false;
+  }
+  return true;
+}
+
+export async function deleteRemoteAttendance(recordId: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('attendance').delete().eq('id', recordId);
+  if (error) console.warn('Supabase delete attendance error:', error.message);
+  return !error;
+}
+
+export async function clearRemoteAttendance(): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.from('attendance').delete().neq('id', '');
+  if (error) console.warn('Supabase clear attendance error:', error.message);
+  return !error;
 }
