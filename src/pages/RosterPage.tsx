@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, KeyRound, Search, ShieldCheck, Trash2, UserRound, X } from 'lucide-react';
+import { ArrowLeft, KeyRound, Search, ShieldCheck, Trash2, UserRound, X, UserCog } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { requestPasswordReset } from '../lib/supabase';
 import { User } from '../types';
@@ -9,11 +9,12 @@ interface RosterPageProps {
 }
 
 export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
-  const { currentUser, allMembers, isAdmin, refreshRoster, deleteMember } = useAuth();
+  const { currentUser, allMembers, isAdmin, refreshRoster, deleteMember, promoteMemberToExecutive } = useAuth();
   const [selected, setSelected] = useState<User | null>(null);
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [promoting, setPromoting] = useState(false);
 
   useEffect(() => {
     if (isAdmin) refreshRoster();
@@ -46,6 +47,21 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
     const result = await requestPasswordReset(selected.email);
     setMessage(result.message);
     setBusy(false);
+  };
+
+  const handlePromote = async () => {
+    if (!selected) return;
+    if (!window.confirm(`Make ${selected.name} an Executive? They will gain executive access to the private staff tools.`)) return;
+    setPromoting(true);
+    setMessage('');
+    const result = await promoteMemberToExecutive(selected.id);
+    if (result.success) {
+      setSelected(null);
+      setMessage(`${selected.name} is now an Executive.`);
+    } else {
+      setMessage(result.message || 'Unable to promote member.');
+    }
+    setPromoting(false);
   };
 
   const handleDelete = async () => {
@@ -140,11 +156,14 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
             </div>
 
             <div className="mt-5 space-y-2">
-              <button disabled={busy || !selected.email} onClick={handleReset} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-bold text-sm py-3">
+              <button disabled={busy || promoting || !selected.email} onClick={handleReset} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-bold text-sm py-3">
                 <KeyRound className="w-4 h-4" /> Send Password Reset
               </button>
+              <button disabled={busy || promoting} onClick={handlePromote} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-sm py-3 disabled:opacity-50">
+                <UserCog className="w-4 h-4" /> Make Executive
+              </button>
               {selected.id !== currentUser.id && (
-                <button disabled={busy} onClick={handleDelete} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-sm py-3 disabled:opacity-50">
+                <button disabled={busy || promoting} onClick={handleDelete} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-sm py-3 disabled:opacity-50">
                   <Trash2 className="w-4 h-4" /> Delete Member
                 </button>
               )}
