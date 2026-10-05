@@ -159,3 +159,72 @@ $$;
 
 revoke all on function public.get_or_create_dtpbc_profile() from public;
 grant execute on function public.get_or_create_dtpbc_profile() to authenticated;
+
+
+-- Staff-only member roster. Only real student members are returned;
+-- executive officers and the teacher sponsor remain staff accounts.
+create or replace function public.get_dtpbc_roster()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  caller_role text;
+  roster jsonb;
+begin
+  select p.role into caller_role from public.profiles p where p.id = auth.uid();
+  if caller_role not in ('executive', 'sponsor_teacher') then
+    raise exception 'Executive or teacher sponsor access required';
+  end if;
+
+  select coalesce(jsonb_agg(to_jsonb(p) order by lower(p.first_name), lower(p.last_name)), '[]'::jsonb)
+    into roster
+  from public.profiles p
+  where p.role = 'member';
+
+  return roster;
+end;
+$$;
+
+revoke all on function public.get_dtpbc_roster() from public;
+grant execute on function public.get_dtpbc_roster() to authenticated;
+
+-- Delete a member's DTPBC profile and Supabase Auth account.
+-- Only an executive or teacher sponsor can do this, and nobody can delete themselves.
+create or replace function public.delete_dtpbc_member(target_member_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  caller_role text;
+  target_role text;
+begin
+  select p.role into caller_role from public.profiles p where p.id = auth.uid();
+  if caller_role not in ('executive', 'sponsor_teacher') then
+    return jsonb_build_object('success', false, 'message', 'Executive or teacher sponsor access required.');
+  end if;
+
+  if target_member_id = auth.uid() then
+    return jsonb_build_object('success', false, 'message', 'You cannot delete your own account.');
+  end if;
+
+  select p.role into target_role from public.profiles p where p.id = target_member_id;
+  if target_role is null then
+    return jsonb_build_object('success', false, 'message', 'Member not found.');
+  end if;
+  if target_role <> 'member' then
+    return jsonb_build_object('success', false, 'message', 'Only regular member accounts can be deleted here.');
+  end if;
+
+  delete from public.profiles where id = target_member_id;
+  delete from auth.users where id = target_member_id;
+
+  return jsonb_build_object('success', true);
+end;
+$$;
+
+revoke all on function public.delete_dtpbc_member(uuid) from public;
+grant execute on function public.delete_dtpbc_member(uuid) to authenticated;
