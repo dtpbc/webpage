@@ -28,6 +28,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
 }) => {
   const { 
     currentUser, 
+    attendanceRecords,
     updateProfile,
     events, 
     userRegisteredEvents,
@@ -66,6 +67,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
   if (!currentUser) return null;
 
   const registeredEventList = events.filter(e => userRegisteredEvents.includes(e.id));
+  const myAttendance = attendanceRecords.filter(a => a.memberId === currentUser.memberId && a.studentId === currentUser.studentId);
   const initials = currentUser.name
     .split(' ')
     .map(p => p[0])
