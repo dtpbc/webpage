@@ -69,6 +69,34 @@ export async function getMemberByAuthId(authId: string): Promise<User | null> {
   } as User;
 }
 
+export async function getRemoteRoster(): Promise<User[] | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('get_dtpbc_roster');
+  if (error || !Array.isArray(data)) {
+    if (error) console.warn('Supabase roster fetch error:', error.message);
+    return null;
+  }
+  return data.map((row: any) => ({
+    id: row.id,
+    memberId: row.member_id || '',
+    name: [row.first_name, row.last_name].filter(Boolean).join(' ') || row.name || 'DTPBC Member',
+    studentId: row.student_id || '',
+    grade: row.grade || 'Grade 10',
+    email: row.email || '',
+    role: row.role || 'member',
+    skillLevel: row.skill_level || 'Beginner (Learning Rules)',
+    joinDate: row.join_date || row.created_at || '',
+  })) as User[];
+}
+
+export async function deleteRemoteMember(memberId: string): Promise<{ success: boolean; message?: string }> {
+  if (!supabase) return { success: false, message: 'Supabase is not configured.' };
+  const { data, error } = await supabase.rpc('delete_dtpbc_member', { target_member_id: memberId });
+  if (error) return { success: false, message: error.message };
+  if (!data?.success) return { success: false, message: data?.message || 'Unable to delete member.' };
+  return { success: true };
+}
+
 export async function getMemberByLogin(login: string): Promise<User | null> {
   if (!supabase) return null;
   const value = login.trim().toLowerCase();
