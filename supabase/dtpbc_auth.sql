@@ -386,3 +386,85 @@ $$;
 
 revoke all on function public.manage_dtpbc_fundraising_item(uuid, text, jsonb) from public;
 grant execute on function public.manage_dtpbc_fundraising_item(uuid, text, jsonb) to authenticated;
+
+
+-- Schedule source of truth.
+-- The website reads/writes these tables instead of placeholder/local-only events.
+create table if not exists public.sessions (
+  id text primary key,
+  title text not null,
+  day text not null,
+  date text,
+  time text not null,
+  location text not null,
+  "gymLayout" text not null default '4 Portable Pickleball Courts (Main Gym)',
+  description text not null default '',
+  "spotsOpen" text not null default '',
+  coordinator text not null default '',
+  status text not null default 'Open'
+);
+
+create table if not exists public.events (
+  id text primary key,
+  title text not null,
+  date text not null,
+  time text not null,
+  location text not null,
+  category text not null default '',
+  "registeredCount" integer not null default 0,
+  "maxTeams" integer not null default 0,
+  description text not null default ''
+);
+
+alter table public.sessions enable row level security;
+alter table public.events enable row level security;
+
+drop policy if exists "DTPBC public schedule read" on public.sessions;
+create policy "DTPBC public schedule read"
+on public.sessions for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "DTPBC admin schedule insert" on public.sessions;
+create policy "DTPBC admin schedule insert"
+on public.sessions for insert to authenticated
+with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+
+drop policy if exists "DTPBC admin schedule update" on public.sessions;
+create policy "DTPBC admin schedule update"
+on public.sessions for update to authenticated
+using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')))
+with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+
+drop policy if exists "DTPBC admin schedule delete" on public.sessions;
+create policy "DTPBC admin schedule delete"
+on public.sessions for delete to authenticated
+using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+
+drop policy if exists "DTPBC public events read" on public.events;
+create policy "DTPBC public events read"
+on public.events for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "DTPBC admin events insert" on public.events;
+create policy "DTPBC admin events insert"
+on public.events for insert to authenticated
+with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+
+drop policy if exists "DTPBC admin events update" on public.events;
+create policy "DTPBC admin events update"
+on public.events for update to authenticated
+using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')))
+with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+
+drop policy if exists "DTPBC admin events delete" on public.events;
+create policy "DTPBC admin events delete"
+on public.events for delete to authenticated
+using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('executive','sponsor_teacher')));
+
+-- Remove the old placeholder schedule/event rows.
+delete from public.sessions where id in ('session-1','session-2','session-3','session-4');
+delete from public.events where id in ('event-1','event-2','event-3');
+
+notify pgrst, 'reload schema';
