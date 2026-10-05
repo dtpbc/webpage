@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Scan, ExternalLink, ShoppingBag, Calendar, Users } from 'lucide-react';
 
-export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'portal' | 'attendance' | 'merch' | 'roster';
+export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'portal' | 'attendance' | 'fundraising' | 'roster';
 
 interface NavbarProps {
   currentRoute: AppRoute;
@@ -56,12 +56,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
             Execs & Team
           </button>
           <button 
-            onClick={() => navigate('merch')}
+            onClick={() => navigate('fundraising')}
             className={`transition-colors cursor-pointer ${
               currentRoute === 'merch' ? 'text-emerald-800 font-bold' : 'hover:text-emerald-700'
             }`}
           >
-            Club Merch
+            Fundraising
           </button>
           <a
             href="https://forms.gle/e3wNimUZKqBbFMC38"
