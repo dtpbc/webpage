@@ -10,7 +10,8 @@ import {
   Scan,
   ShieldCheck,
   X,
-  Trash2
+  Trash2,
+  Users
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
