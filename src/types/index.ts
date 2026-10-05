@@ -49,6 +49,8 @@ export interface AttendanceRecord {
   grade: string;
   timestamp: string;
   scannedBy: string;
+  eventId: string;
+  eventTitle: string;
 }
 
 export interface RosterMember extends User {}
