@@ -97,22 +97,67 @@ where id = 'a41392d9-14c3-4f40-a21b-e6b32e5b9765';
 -- from public.profiles;
 
 
--- Allow login by 7-digit school ID or PB-#### without exposing the
--- profile table directly. This function only returns the matching email.
-create or replace function public.get_dtpbc_login_email(login_value text)
-returns text
-language sql
+-- Production-safe profile lookup for signed-in users.
+-- This also repairs older Auth accounts that were created before the
+-- DTPBC profile trigger existed. It does not expose other members.
+create or replace function public.get_or_create_dtpbc_profile()
+returns jsonb
+language plpgsql
 security definer
 set search_path = ''
-as $$
-  select p.email
-  from public.profiles p
-  where lower(trim(p.email)) = lower(trim(login_value))
-     or lower(trim(p.member_id)) = lower(trim(login_value))
-     or trim(p.student_id) = trim(login_value)
-  limit 1;
-$$;
+as $
+declare
+  auth_id uuid;
+  auth_email text;
+  metadata jsonb;
+  full_name text;
+  candidate text;
+  profile_row jsonb;
+begin
+  auth_id := auth.uid();
 
-revoke all on function public.get_dtpbc_login_email(text) from public;
-grant execute on function public.get_dtpbc_login_email(text) to anon, authenticated;
+  if auth_id is null then
+    return null;
+  end if;
+
+  select u.email, u.raw_user_meta_data
+    into auth_email, metadata
+  from auth.users u
+  where u.id = auth_id;
+
+  if not found then
+    return null;
+  end if;
+
+  full_name := coalesce(metadata ->> 'name', 'DTPBC Member');
+
+  insert into public.profiles (
+    id, first_name, last_name, role, member_id, student_id, grade,
+    email, skill_level, join_date
+  )
+  values (
+    auth_id,
+    split_part(full_name, ' ', 1),
+    nullif(trim(substr(full_name, strpos(full_name, ' ') + 1)), ''),
+    'member',
+    public.generate_dtpbc_member_id(),
+    metadata ->> 'studentId',
+    coalesce(metadata ->> 'grade', 'Grade 10'),
+    auth_email,
+    coalesce(metadata ->> 'skillLevel', 'Beginner (Learning Rules)'),
+    to_char(current_date, 'FMMonth YYYY')
+  )
+  on conflict (id) do nothing;
+
+  select to_jsonb(p)
+    into profile_row
+  from public.profiles p
+  where p.id = auth_id;
+
+  return profile_row;
+end;
+$;
+
+revoke all on function public.get_or_create_dtpbc_profile() from public;
+grant execute on function public.get_or_create_dtpbc_profile() to authenticated;
 
