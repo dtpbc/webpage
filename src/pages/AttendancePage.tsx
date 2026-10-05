@@ -16,7 +16,8 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
     recordGuestAttendance,
     removeAttendanceRecord,
     clearAttendance,
-    events
+    events,
+    sessions
   } = useAuth();
 
   const [selectedEventId, setSelectedEventId] = useState('');
@@ -26,6 +27,11 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   const [guestName, setGuestName] = useState('');
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
+
+  const attendanceEvents = [
+    ...sessions.filter(s => s.date).map(s => ({ id: s.id, title: s.title, date: s.date! })),
+    ...events.map(e => ({ id: e.id, title: e.title, date: e.date })),
+  ];
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus barcode input for quick scanning with handheld USB/Bluetooth barcode scanner
@@ -108,7 +114,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                 <span className="block text-xs font-bold text-slate-700 mb-1.5">Attendance Event</span>
                 <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)} className="w-full px-3 py-3 bg-slate-50 border-2 border-sky-300 focus:border-emerald-700 rounded-xl text-sm text-slate-900 focus:outline-none">
                   <option value="">Select an event...</option>
-                  {events.map(event => <option key={event.id} value={event.id}>{event.title} — {event.date}</option>)}
+                  {attendanceEvents.map(event => <option key={event.id} value={event.id}>{event.title} — {event.date}</option>)}
                 </select>
               </label>
               <h3 className="font-display text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
@@ -241,7 +247,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
                   <div>
                     <h3 className="font-display text-lg font-bold text-slate-900">
-                      Attendance Log — {selectedEventId ? (events.find(e => e.id === selectedEventId)?.title || 'Selected Event') : 'Select an Event'}
+                      Attendance Log — {selectedEventId ? (attendanceEvents.find(e => e.id === selectedEventId)?.title || 'Selected Event') : 'Select an Event'}
                     </h3>
                     <p className="text-xs text-slate-500">
                       {attendanceRecords.length} Students Checked In
