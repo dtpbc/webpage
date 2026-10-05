@@ -107,7 +107,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Vice President',
     category: 'Vice President',
     grade: 'Grade 9',
-    photoFilename: 'vp-karson.jpg',
+    photoFilename: 'vp-1.jpg',
     responsibilities: [
       'Managing weekly gym drop-in court setups and equipment care',
       'Assisting the President in club operations and event planning',
@@ -121,7 +121,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Vice President',
     category: 'Vice President',
     grade: 'Grade 9',
-    photoFilename: 'vp-lucas.jpg',
+    photoFilename: 'vp-2.jpg',
     responsibilities: [
       'Member recruitment and Clubs Day coordination',
       'Leading beginner "Learn-to-Dink" clinics for incoming players',
@@ -163,7 +163,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
-    photoFilename: 'mal-vincent.jpg',
+    photoFilename: 'mal-1.jpg',
     responsibilities: [
       'Assisting with gym net setup and takedown before and after sessions',
       'Managing equipment cage check-in and ball inventory',
@@ -176,7 +176,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
-    photoFilename: 'mal-johanna.jpg',
+    photoFilename: 'mal-2.jpg',
     responsibilities: [
       'Assisting with student check-ins at gym doors',
       'Helping coordinate the annual Staff vs. Students lunch match',
@@ -189,7 +189,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
-    photoFilename: 'mal-jain.jpg',
+    photoFilename: 'mal-3.jpg',
     responsibilities: [
       'Tournament court refereeing and line dispute resolution',
       'Organizing Friday after-school friendly scrimmage matches',
@@ -202,7 +202,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
-    photoFilename: 'mal-bela.jpg',
+    photoFilename: 'mal-4.jpg',
     responsibilities: [
       'Assisting with student court rotation and paddle stack etiquette',
       'Helping new members learn rules and scorekeeping',
@@ -215,7 +215,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     role: 'Teacher Sponsor',
     category: 'Teacher Sponsor',
     grade: 'Staff / Teacher',
-    photoFilename: 't-sponsor.png',
+    photoFilename: 'teacher-sponsor.png',
     responsibilities: [
       'Staff supervision of all after-school and lunchtime gymnasium sessions',
       'Sanctioning club activities through David Thompson Secondary administration',
