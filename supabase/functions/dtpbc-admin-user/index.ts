@@ -78,7 +78,7 @@ export default {
 
         const profile = {
           id: created.user.id,
-          member_id: payload.memberId || `PB-${Math.floor(1000 + Math.random() * 9000)}`,
+          member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : `PB-${Math.floor(1000 + Math.random() * 9000)}`,
           first_name: names.first_name,
           last_name: names.last_name,
           student_id: payload.studentId || '',
@@ -129,7 +129,7 @@ export default {
         const { error: profileUpdateError } = await ctx.supabaseAdmin
           .from('profiles')
           .update({
-            member_id: payload.memberId || null,
+            member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : undefined,
             first_name: names.first_name,
             last_name: names.last_name,
             student_id: payload.studentId || '',
