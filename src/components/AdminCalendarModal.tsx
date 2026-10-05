@@ -28,6 +28,7 @@ export const AdminCalendarModal: React.FC = () => {
   const [coordinator, setCoordinator] = useState('Noah Park (President) & Mr. Willy Wan');
   const [status, setStatus] = useState<'Open' | 'Starting Soon' | 'Completed'>('Open');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const resetForm = () => {
     setTitle('');
@@ -101,8 +102,6 @@ export const AdminCalendarModal: React.FC = () => {
       resetForm();
     }, 1500);
   };
-
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleEdit = (session: ClubSession) => {
     setEditingSession(session);
