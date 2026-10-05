@@ -47,15 +47,33 @@ export default {
         );
       }
 
-      const { data: callerProfile, error: profileError } = await ctx.supabaseAdmin
-        .from('profiles')
-        .select('id, role')
-        .eq('id', callerId)
-        .maybeSingle();
+      const callerId =
+        (ctx.userClaims as any)?.sub ||
+        (ctx.userClaims as any)?.id;
 
-      if (profileError || !callerProfile || !['executive', 'sponsor_teacher'].includes(callerProfile.role)) {
-        return Response.json({ success: false, message: 'Executive or teacher sponsor access required.' }, { status: 403, headers: corsHeaders });
+      if (!callerId) {
+        return Response.json(
+          { success: false, message: 'Your session is invalid or has expired. Please sign in again.' },
+          { status: 401, headers: corsHeaders }
+        );
       }
+
+      // Use a SECURITY DEFINER RPC so RLS on profiles cannot block
+      // the caller-role check inside this Edge Function.
+      const { data: callerRole, error: roleError } =
+        await ctx.supabase.rpc('get_dtpbc_caller_role');
+
+      if (
+        roleError ||
+        !['executive', 'sponsor_teacher'].includes(callerRole)
+      ) {
+        return Response.json(
+          { success: false, message: 'Executive or teacher sponsor access required.' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      const callerProfile = { role: callerRole };
 
       const payload = await req.json() as Payload;
       const email = payload.email.trim().toLowerCase();
