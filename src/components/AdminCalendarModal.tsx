@@ -18,7 +18,6 @@ export const AdminCalendarModal: React.FC = () => {
   } = useAuth();
 
   const [title, setTitle] = useState('');
-  const [day, setDay] = useState('');
   const [specificDate, setSpecificDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('DT Large Gymnasium');
@@ -32,7 +31,6 @@ export const AdminCalendarModal: React.FC = () => {
 
   const resetForm = () => {
     setTitle('');
-    setDay('Every Tuesday & Thursday');
     setSpecificDate('');
     setTime('3:15 PM – 4:45 PM');
     setLocation('DT Large Gymnasium');
@@ -47,7 +45,6 @@ export const AdminCalendarModal: React.FC = () => {
   useEffect(() => {
     if (editingSession) {
       setTitle(editingSession.title);
-      setDay(editingSession.day);
       setSpecificDate(editingSession.date || '');
       setTime(editingSession.time);
       setLocation(editingSession.location);
@@ -65,14 +62,14 @@ export const AdminCalendarModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !day || !time) return;
+    if (!title || !specificDate || !time) return;
 
     if (editingSession) {
       await updateSession({
         ...editingSession,
         title,
-        day,
-        date: specificDate || undefined,
+        day: '',
+        date: specificDate,
         time,
         location,
         gymLayout,
@@ -84,8 +81,8 @@ export const AdminCalendarModal: React.FC = () => {
     } else {
       await addSession({
         title,
-        day,
-        date: specificDate || undefined,
+        day: '',
+        date: specificDate,
         time,
         location,
         gymLayout,
@@ -178,18 +175,6 @@ export const AdminCalendarModal: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-slate-800 font-semibold mb-1">Day of Week</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Every Thursday"
-                  value={day}
-                  onChange={(e) => setDay(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-sky-500 focus:bg-white"
-                />
-              </div>
-
               <div>
                 <label className="block text-slate-800 font-semibold mb-1">Date</label>
                 <input
@@ -312,7 +297,7 @@ export const AdminCalendarModal: React.FC = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sky-800">{s.day}</span>
+                        <span className="font-bold text-sky-800">{s.date || 'No date'}</span>
                         <span className="text-slate-400">·</span>
                         <span className="text-slate-700 font-mono text-[11px] font-semibold">{s.time}</span>
                       </div>
