@@ -52,10 +52,6 @@ export default {
         return Response.json({ success: false, message: 'Name and a valid email address are required.' }, { status: 400, headers: corsHeaders });
       }
 
-      if (payload.role === 'sponsor_teacher' && callerProfile.role !== 'sponsor_teacher') {
-        return Response.json({ success: false, message: 'Only the teacher sponsor can assign the teacher sponsor role.' }, { status: 403, headers: corsHeaders });
-      }
-
       const names = splitName(name);
 
       if (payload.action === 'create') {
@@ -76,9 +72,29 @@ export default {
           return Response.json({ success: false, message: createError?.message || 'Unable to create the account.' }, { status: 400, headers: corsHeaders });
         }
 
+        let memberId = payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : '';
+        if (!memberId) {
+          for (let attempt = 0; attempt < 100; attempt++) {
+            const candidate = `PB-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+            const { data: existing } = await ctx.supabaseAdmin
+              .from('profiles')
+              .select('id')
+              .eq('member_id', candidate)
+              .maybeSingle();
+            if (!existing) {
+              memberId = candidate;
+              break;
+            }
+          }
+        }
+        if (!memberId) {
+          await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
+          return Response.json({ success: false, message: 'Unable to generate a unique DTPBC member number. Please try again.' }, { status: 500, headers: corsHeaders });
+        }
+
         const profile = {
           id: created.user.id,
-          member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : `PB-${Math.floor(1000 + Math.random() * 9000)}`,
+          member_id: memberId,
           first_name: names.first_name,
           last_name: names.last_name,
           student_id: payload.studentId || '',
@@ -97,7 +113,7 @@ export default {
 
         // Use the user-scoped client so Supabase sends the normal recovery email.
         const { error: resetError } = await ctx.supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${req.headers.get('origin') || ''}/login?reset=success`,
+          redirectTo: `${req.headers.get('origin') || 'https://web.dtpbc.workers.dev'}/reset-password`,
         });
 
         if (resetError) {
