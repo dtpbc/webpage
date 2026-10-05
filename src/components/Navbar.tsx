@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Scan, ExternalLink, ShoppingBag, Calendar, Users } from 'lucide-react';
 
-export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'portal' | 'attendance' | 'merch';
+export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'portal' | 'attendance' | 'merch' | 'roster';
 
 interface NavbarProps {
   currentRoute: AppRoute;
