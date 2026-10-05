@@ -328,12 +328,8 @@ create policy "DTPBC authenticated attendance delete"
 on public.attendance for delete
 to authenticated
 using (
-  exists (
-    select 1
-    from public.profiles p
-    where p.id = auth.uid()
-      and p.role in ('executive', 'sponsor_teacher')
-  )
+  (select cp.role from public.get_dtpbc_current_profile() cp)
+    in ('executive', 'sponsor_teacher')
 );
 
 create index if not exists attendance_event_id_idx
