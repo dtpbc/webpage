@@ -1,4 +1,5 @@
 export type ClubRole = 'member' | 'executive' | 'sponsor_teacher';
+export type AppStaffRole = 'executive' | 'sponsor_teacher';
 export type SkillLevel = 'Beginner (Learning Rules)' | 'Intermediate (Consistent Rallies)' | 'Advanced (Competitive Play)';
 export type GymLayoutOption = '4 Portable Pickleball Courts (Main Gym)' | '4 Badminton-Style Nets' | '8 Courts (Double Gym Combined)';
 
@@ -49,6 +50,8 @@ export interface AttendanceRecord {
   timestamp: string;
   scannedBy: string;
 }
+
+export interface RosterMember extends User {}
 
 export interface ExecutiveMember {
   name: string;
