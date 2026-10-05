@@ -105,13 +105,12 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   auth_id uuid;
   auth_email text;
   metadata jsonb;
   full_name text;
-  candidate text;
   profile_row jsonb;
 begin
   auth_id := auth.uid();
@@ -156,8 +155,7 @@ begin
 
   return profile_row;
 end;
-$;
+$$;
 
 revoke all on function public.get_or_create_dtpbc_profile() from public;
 grant execute on function public.get_or_create_dtpbc_profile() to authenticated;
-
