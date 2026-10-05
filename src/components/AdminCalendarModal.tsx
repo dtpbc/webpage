@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { ClubSession } from '../types';
 import { Calendar, Plus, Trash2, Edit3, Check, X } from 'lucide-react';
@@ -59,7 +60,7 @@ export const AdminCalendarModal: React.FC = () => {
     }
   }, [editingSession]);
 
-  if (!isAdminCalendarModalOpen) return null;
+  if (!isAdminCalendarModalOpen || typeof document === 'undefined') return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,8 +116,8 @@ export const AdminCalendarModal: React.FC = () => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in">
       <div className="relative w-full max-w-4xl rounded-2xl bg-white border border-sky-300 p-6 sm:p-8 shadow-2xl text-left max-h-[92vh] overflow-y-auto flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-200">
@@ -364,6 +365,7 @@ export const AdminCalendarModal: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
