@@ -294,7 +294,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const recordAttendance = (input: string, eventId: string): { success: boolean; studentName?: string; message: string } => {
     if (!eventId) return { success: false, message: 'Please select an event before recording attendance.' };
     const event = events.find(e => e.id === eventId);
-    if (!event) return { success: false, message: 'Selected event could not be found.' };
+    const session = sessions.find(s => s.id === eventId);
+    if (!event && !session) return { success: false, message: 'Selected attendance event could not be found.' };
+    const attendanceTitle = event?.title || session!.title;
     const query = input.trim().toLowerCase();
     const cleanId = input.replace(/\D/g, '');
 
@@ -333,7 +335,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       scannedBy: currentUser?.name || 'Scanner',
       eventId,
-      eventTitle: event.title,
+      eventTitle: attendanceTitle,
     };
 
     setAttendanceRecords(prev => [newRecord, ...prev]);
@@ -352,10 +354,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cleanName = name.trim();
     if (!cleanName) return { success: false, message: 'Enter the guest name first.' };
     const event = events.find(e => e.id === eventId);
-    if (!event) return { success: false, message: 'Selected event could not be found.' };
+    const session = sessions.find(s => s.id === eventId);
+    if (!event && !session) return { success: false, message: 'Selected attendance event could not be found.' };
+    const attendanceTitle = event?.title || session!.title;
     const duplicate = attendanceRecords.find(a => a.eventId === eventId && a.memberId === 'GUEST' && a.studentName.toLowerCase() === cleanName.toLowerCase());
     if (duplicate) return { success: false, studentName: cleanName, message: `${cleanName} is already checked in as a guest for this event.` };
-    const newRecord: AttendanceRecord = { id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, memberId: 'GUEST', studentId: 'GUEST', studentName: cleanName, grade: 'Guest', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), scannedBy: currentUser?.name || 'Scanner', eventId, eventTitle: event.title };
+    const newRecord: AttendanceRecord = { id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, memberId: 'GUEST', studentId: 'GUEST', studentName: cleanName, grade: 'Guest', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), scannedBy: currentUser?.name || 'Scanner', eventId, eventTitle: attendanceTitle };
     setAttendanceRecords(prev => [newRecord, ...prev]);
     if (isSupabaseConfigured) upsertRemoteAttendance(newRecord).catch(e => console.warn('Guest attendance save error:', e));
     return { success: true, studentName: cleanName, message: `Checked in guest ${cleanName} successfully!` };
