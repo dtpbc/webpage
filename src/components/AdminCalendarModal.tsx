@@ -123,14 +123,14 @@ export const AdminCalendarModal: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-display text-xl font-bold text-slate-900">
-                Admin Gym Schedule Manager
+                Admin Schedule & Event Manager
               </h3>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 uppercase border border-emerald-300">
                 EXECUTIVE ACCESS
               </span>
             </div>
             <p className="text-xs text-slate-600 mt-1">
-              Add, update, or cancel David Thompson gym sessions and practice times.
+              Manage gym sessions and special club events. Changes are saved to Supabase.
             </p>
           </div>
 
