@@ -160,12 +160,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('dtpbc_sessions_v5', JSON.stringify(remoteSessions));
         }
       });
-      getRemoteAttendance().then(remoteAttendance => {
-        if (remoteAttendance) {
-          setAttendanceRecords(remoteAttendance);
-          localStorage.setItem('dtpbc_attendance_v5', JSON.stringify(remoteAttendance));
-        }
-      });
       getRemoteEvents().then(remoteEvents => {
         if (remoteEvents) {
           setEvents(remoteEvents);
@@ -174,6 +168,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     }
   }, []);
+
+  // Attendance is protected by RLS. Only load it after a user is authenticated.
+  // Members see their own records; executives/sponsor teachers see the full scanner log.
+  useEffect(() => {
+    if (!currentUser || !isSupabaseConfigured) return;
+    getRemoteAttendance().then(remoteAttendance => {
+      if (remoteAttendance) {
+        setAttendanceRecords(remoteAttendance);
+        localStorage.setItem('dtpbc_attendance_v5', JSON.stringify(remoteAttendance));
+      }
+    });
+  }, [currentUser?.id]);
 
   useEffect(() => {
     localStorage.setItem('dtpbc_members_v5', JSON.stringify(allMembers));
