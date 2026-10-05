@@ -25,7 +25,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   const [confirmClear, setConfirmClear] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [showGuestForm, setShowGuestForm] = useState(false);
-  const [feedback, setFeedback = useState<{ success: boolean; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus barcode input for quick scanning with handheld USB/Bluetooth barcode scanner
