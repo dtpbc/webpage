@@ -18,7 +18,6 @@ export interface User {
 export interface ClubSession {
   id: string;
   title: string;
-  day: string;
   date?: string; // Optional specific ISO date YYYY-MM-DD for calendar clicking
   time: string;
   location: string;
