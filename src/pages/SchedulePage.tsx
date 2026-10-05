@@ -136,20 +136,32 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     setSelectedCalendarDate(null);
   };
 
-  // Map days of week to sessions
-  const getSessionsForDayOfWeek = (dayIndex: number) => {
-    // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
-    if (dayIndex === 2 || dayIndex === 4) { // Tue / Thu
-      return sessions.filter(s => s.day.toLowerCase().includes('tuesday') || s.day.toLowerCase().includes('thursday'));
-    }
-    if (dayIndex === 1 || dayIndex === 3 || dayIndex === 5) { // Mon / Wed / Fri
-      return sessions.filter(s => s.day.toLowerCase().includes('monday') || s.day.toLowerCase().includes('wednesday') || s.day.toLowerCase().includes('friday'));
-    }
-    return [];
+  const formatCalendarDate = (date: Date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   };
 
-  // Filtered sessions list
+  // A dated session belongs only to its exact calendar date. Sessions without
+  // a date are treated as recurring weekly sessions based on their day field.
+  const getSessionsForCalendarDate = (date: Date) => {
+    const dateKey = formatCalendarDate(date);
+    const dayName = dayNames[date.getDay()].toLowerCase();
+    return sessions.filter(s => {
+      if (s.date) return s.date === dateKey;
+      return s.day.toLowerCase().includes(dayName);
+    });
+  };
+
   const filteredSessions = sessions.filter((s) => {
+    if (selectedCalendarDate !== null) {
+      const selectedDate = new Date(year, month, selectedCalendarDate);
+      const dateKey = formatCalendarDate(selectedDate);
+      const dayName = dayNames[selectedDate.getDay()].toLowerCase();
+      if (s.date) return s.date === dateKey;
+      return s.day.toLowerCase().includes(dayName);
+    }
     if (!selectedDayOfWeek) return true;
     return s.day.toLowerCase().includes(selectedDayOfWeek.toLowerCase());
   });
@@ -268,8 +280,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               const dayNum = i + 1;
               const dateObj = new Date(year, month, dayNum);
               const dayOfWeek = dateObj.getDay();
-              const dayName = dayNames[dayOfWeek];
-              const daySessions = getSessionsForDayOfWeek(dayOfWeek);
+              const daySessions = getSessionsForCalendarDate(dateObj);
               const isSelected = selectedCalendarDate === dayNum;
               const hasSessions = daySessions.length > 0;
 
