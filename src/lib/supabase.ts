@@ -22,31 +22,50 @@ export const supabase = isSupabaseConfigured
 export async function getMemberByAuthId(authId: string): Promise<User | null> {
   if (!supabase) return null;
 
-  const { data, error } = await supabase
+  // Use a security-definer RPC so profile RLS cannot break login.
+  // The RPC only returns/creates the profile belonging to auth.uid().
+  const { data, error } = await supabase.rpc('get_or_create_dtpbc_profile');
+
+  if (!error && data) {
+    return {
+      id: data.id,
+      memberId: data.member_id || '',
+      name: [data.first_name, data.last_name].filter(Boolean).join(' ') || data.name || 'DTPBC Member',
+      studentId: data.student_id || '',
+      grade: data.grade || 'Grade 10',
+      email: data.email || '',
+      role: data.role || 'member',
+      skillLevel: data.skill_level || 'Beginner (Learning Rules)',
+      joinDate: data.join_date || data.created_at || '',
+    } as User;
+  }
+
+  // Fallback for deployments where the RPC migration has not been applied yet.
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', authId)
     .maybeSingle();
 
-  if (error) {
-    console.warn('Supabase profile fetch error:', error.message);
+  if (profileError) {
+    console.warn('Supabase profile fetch error:', profileError.message);
     return null;
   }
 
-  if (!data) return null;
+  if (!profile) return null;
 
   const authUser = await supabase.auth.getUser();
 
   return {
-    id: data.id,
-    memberId: data.member_id || '',
-    name: [data.first_name, data.last_name].filter(Boolean).join(' ') || data.name || 'DTPBC Member',
-    studentId: data.student_id || '',
-    grade: data.grade || 'Grade 10',
-    email: data.email || authUser.data.user?.email || '',
-    role: data.role || 'member',
-    skillLevel: data.skill_level || 'Beginner (Learning Rules)',
-    joinDate: data.join_date || data.created_at || '',
+    id: profile.id,
+    memberId: profile.member_id || '',
+    name: [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.name || 'DTPBC Member',
+    studentId: profile.student_id || '',
+    grade: profile.grade || 'Grade 10',
+    email: profile.email || authUser.data.user?.email || '',
+    role: profile.role || 'member',
+    skillLevel: profile.skill_level || 'Beginner (Learning Rules)',
+    joinDate: profile.join_date || profile.created_at || '',
   } as User;
 }
 
