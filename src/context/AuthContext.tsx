@@ -5,6 +5,8 @@ import {
   isSupabaseConfigured,
   supabase,
   getMemberByAuthId,
+  getRemoteRoster,
+  deleteRemoteMember,
   getRemoteSessions, 
   upsertRemoteSession, 
   deleteRemoteSession,
@@ -39,6 +41,8 @@ interface AuthContextType {
   recordAttendance: (input: string) => { success: boolean; studentName?: string; message: string };
   removeAttendanceRecord: (recordId: string) => void;
   clearAttendance: () => void;
+  refreshRoster: () => Promise<void>;
+  deleteMember: (memberId: string) => Promise<{ success: boolean; message?: string }>;
   // Admin Calendar Modal
   isAdminCalendarModalOpen: boolean;
   setIsAdminCalendarModalOpen: (open: boolean) => void;
@@ -99,9 +103,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdminCalendarModalOpen, setIsAdminCalendarModalOpen] = useState<boolean>(false);
   const [editingSession, setEditingSession] = useState<ClubSession | null>(null);
 
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'executive' || currentUser?.role === 'sponsor_teacher';
+  const isAdmin = currentUser?.role === 'executive' || currentUser?.role === 'sponsor_teacher';
 
   // Supabase Auth is the source of truth for signed-in users.
+  const refreshRoster = async () => {
+    if (!isSupabaseConfigured) return;
+    const roster = await getRemoteRoster();
+    if (roster) {
+      setAllMembers(roster);
+      localStorage.setItem('dtpbc_members_v5', JSON.stringify(roster));
+    }
+  };
+
+  const deleteMember = async (memberId: string) => {
+    if (!isAdmin) return { success: false, message: 'Executive access required.' };
+    if (memberId === currentUser?.id) return { success: false, message: 'You cannot delete your own account from the roster.' };
+    const result = await deleteRemoteMember(memberId);
+    if (result.success) setAllMembers(prev => prev.filter(member => member.id !== memberId));
+    return result;
+  };
+
   useEffect(() => {
     if (!supabase) return;
 
@@ -109,10 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const profile = await getMemberByAuthId(user.id);
-      if (profile) {
-        setCurrentUser(profile);
-        setAllMembers(prev => prev.some(m => m.id === profile.id) ? prev.map(m => m.id === profile.id ? profile : m) : [...prev, profile]);
-      }
+      if (profile) setCurrentUser(profile);
+      await refreshRoster();
     };
 
     loadCurrentUser();
@@ -122,10 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       const profile = await getMemberByAuthId(session.user.id);
-      if (profile) {
-        setCurrentUser(profile);
-        setAllMembers(prev => prev.some(m => m.id === profile.id) ? prev.map(m => m.id === profile.id ? profile : m) : [...prev, profile]);
-      }
+      if (profile) setCurrentUser(profile);
+      await refreshRoster();
     });
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -194,7 +211,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setCurrentUser(profile);
-    setAllMembers(prev => prev.some(m => m.id === profile.id) ? prev.map(m => m.id === profile.id ? profile : m) : [...prev, profile]);
+    await refreshRoster();
     return { success: true };
   };
 
@@ -232,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setCurrentUser(profile);
-    setAllMembers(prev => [...prev.filter(m => m.id !== profile.id), profile]);
+    await refreshRoster();
     return { success: true };
   };
 
@@ -417,6 +434,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         recordAttendance,
         removeAttendanceRecord,
         clearAttendance,
+        refreshRoster,
+        deleteMember,
         isAdminCalendarModalOpen,
         setIsAdminCalendarModalOpen,
         editingSession,
