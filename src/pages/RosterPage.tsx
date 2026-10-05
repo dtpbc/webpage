@@ -120,7 +120,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
         <div className="mb-7">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2">Private Staff Area</p>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Member Roster</h1>
-          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members. Admins are only executives and teacher sponsors; there is no separate admin role. Admins are only executives and teacher sponsors; there is no separate admin role.</p>
+          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members. Admins are only executives and teacher sponsors; there is no separate admin role.</p>
         </div>
 
         <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
@@ -181,13 +181,13 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] font-bold uppercase text-slate-500">Student ID</div><div className="text-sm font-mono font-semibold mt-1">#{selected.studentId}</div></div>
             </div>}
 
-            {editing ? <div className="mt-6 space-y-3">
+            {editing ? (\n              <div className="mt-6 space-y-3">
               {([['name','Name'],['email','Email'],['studentId','Student ID']] as const).map(([key,label]) => <label key={key} className="block text-xs font-bold text-slate-600">{label}<input value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>)}<label className="block text-xs font-bold text-slate-600">DTPBC Member ID<div className="mt-1 flex items-stretch"><span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-300 bg-slate-200 text-slate-500 font-mono text-sm select-none">PB-</span><input value={form.memberId.replace(/^PB-/i, '')} onChange={e => setForm({ ...form, memberId: `PB-${e.target.value.replace(/^PB-/i, '')}` })} placeholder="1234" className="w-full rounded-r-xl border border-slate-300 px-3 py-2.5 text-sm font-mono" /></div></label>}
               <div className="grid grid-cols-2 gap-3"><label className="text-xs font-bold text-slate-600">Grade<select value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value as User['grade'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{['Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','Staff / Teacher'].map(v => <option key={v}>{v}</option>)}</select></label><label className="text-xs font-bold text-slate-600">Role<select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as User['role'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="member">Member</option><option value="executive">Executive</option><option value="sponsor_teacher">Teacher Sponsor</option></select></label></div>
               <label className="block text-xs font-bold text-slate-600">Skill Level<select value={form.skillLevel} onChange={e => setForm({ ...form, skillLevel: e.target.value as User['skillLevel'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{['Beginner (Learning Rules)','Intermediate (Consistent Rallies)','Advanced (Competitive Play)'].map(v => <option key={v}>{v}</option>)}</select></label>
               <button disabled={saving} onClick={saveProfile} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm py-3 disabled:opacity-50"><Save className="w-4 h-4" /> {saving ? 'Saving…' : adding ? 'Create User & Send Reset Email' : 'Save Profile'}</button>
               <button disabled={saving} onClick={() => { setEditing(false); setAdding(false); }} className="w-full rounded-xl border border-slate-300 text-slate-700 font-bold text-sm py-3">Cancel</button>
-            </div> : <div className="mt-5 space-y-2">
+            </div>\n            ) : (\n              <div className="mt-5 space-y-2">
               <button disabled={busy || promoting || editing || !selected.email} onClick={handleReset} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white font-bold text-sm py-3">
                 <KeyRound className="w-4 h-4" /> Send Password Reset
               </button>
