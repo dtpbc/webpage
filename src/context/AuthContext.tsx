@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, ClubSession, SpecialEvent, AttendanceRecord } from '../types';
-import { INITIAL_CLUB_SESSIONS, INITIAL_SPECIAL_EVENTS } from '../data/mockData';
 import { 
   isSupabaseConfigured,
   supabase,
@@ -43,6 +42,7 @@ interface AuthContextType {
   // Attendance records for barcode / QR scanner
   attendanceRecords: AttendanceRecord[];
   recordAttendance: (input: string, eventId: string) => { success: boolean; studentName?: string; message: string };
+  recordGuestAttendance: (name: string, eventId: string) => { success: boolean; studentName?: string; message: string };
   removeAttendanceRecord: (recordId: string) => Promise<void>;
   clearAttendance: () => Promise<void>;
   refreshRoster: () => Promise<void>;
@@ -68,12 +68,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [sessions, setSessions] = useState<ClubSession[]>(() => {
     const saved = localStorage.getItem('dtpbc_sessions_v5');
-    return saved ? JSON.parse(saved) : INITIAL_CLUB_SESSIONS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [events, setEvents] = useState<SpecialEvent[]>(() => {
     const saved = localStorage.getItem('dtpbc_events_v5');
-    return saved ? JSON.parse(saved) : INITIAL_SPECIAL_EVENTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [userRegisteredEvents, setUserRegisteredEvents] = useState<string[]>(() => {
@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (isSupabaseConfigured) {
       getRemoteSessions().then(remoteSessions => {
-        if (remoteSessions && remoteSessions.length > 0) {
+        if (remoteSessions) {
           setSessions(remoteSessions);
           localStorage.setItem('dtpbc_sessions_v5', JSON.stringify(remoteSessions));
         }
@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       getRemoteEvents().then(remoteEvents => {
-        if (remoteEvents && remoteEvents.length > 0) {
+        if (remoteEvents) {
           setEvents(remoteEvents);
           localStorage.setItem('dtpbc_events_v5', JSON.stringify(remoteEvents));
         }
@@ -340,6 +340,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
+  const recordGuestAttendance = (name: string, eventId: string): { success: boolean; studentName?: string; message: string } => {
+    if (!eventId) return { success: false, message: 'Please select an event before recording attendance.' };
+    const cleanName = name.trim();
+    if (!cleanName) return { success: false, message: 'Enter the guest name first.' };
+    const event = events.find(e => e.id === eventId);
+    if (!event) return { success: false, message: 'Selected event could not be found.' };
+    const duplicate = attendanceRecords.find(a => a.eventId === eventId && a.memberId === 'GUEST' && a.studentName.toLowerCase() === cleanName.toLowerCase());
+    if (duplicate) return { success: false, studentName: cleanName, message: `${cleanName} is already checked in as a guest for this event.` };
+    const newRecord: AttendanceRecord = { id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, memberId: 'GUEST', studentId: 'GUEST', studentName: cleanName, grade: 'Guest', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), scannedBy: currentUser?.name || 'Scanner', eventId, eventTitle: event.title };
+    setAttendanceRecords(prev => [newRecord, ...prev]);
+    if (isSupabaseConfigured) upsertRemoteAttendance(newRecord).catch(e => console.warn('Guest attendance save error:', e));
+    return { success: true, studentName: cleanName, message: `Checked in guest ${cleanName} successfully!` };
+  };
+
   const removeAttendanceRecord = async (recordId: string) => {
     setAttendanceRecords(prev => prev.filter(a => a.id !== recordId));
     if (isSupabaseConfigured) await deleteRemoteAttendance(recordId);
@@ -451,6 +465,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userRegisteredEvents,
         attendanceRecords,
         recordAttendance,
+        recordGuestAttendance,
         removeAttendanceRecord,
         clearAttendance,
         refreshRoster,
