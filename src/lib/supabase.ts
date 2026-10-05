@@ -89,6 +89,14 @@ export async function getRemoteRoster(): Promise<User[] | null> {
   })) as User[];
 }
 
+export async function promoteRemoteMemberToExecutive(memberId: string): Promise<{ success: boolean; message?: string }> {
+  if (!supabase) return { success: false, message: 'Supabase is not configured.' };
+  const { data, error } = await supabase.rpc('promote_dtpbc_member_to_executive', { target_member_id: memberId });
+  if (error) return { success: false, message: error.message };
+  if (!data?.success) return { success: false, message: data?.message || 'Unable to promote member.' };
+  return { success: true };
+}
+
 export async function deleteRemoteMember(memberId: string): Promise<{ success: boolean; message?: string }> {
   if (!supabase) return { success: false, message: 'Supabase is not configured.' };
   const { data, error } = await supabase.rpc('delete_dtpbc_member', { target_member_id: memberId });
