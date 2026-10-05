@@ -1,146 +1,120 @@
-import React from 'react';
-import { ArrowLeft, ShoppingBag, CheckCircle2, Mail, Sparkles } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, Heart, Plus, Pencil, Trash2, MapPin, DollarSign, Info, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { getFundraisingItems, manageFundraisingItem, FundraisingItemInput } from '../lib/supabase';
+import { FundraisingItem } from '../types';
 
 interface MerchPageProps {
   onNavigateHome: () => void;
   onNavigateSignUp: () => void;
 }
 
+const emptyForm: FundraisingItemInput = {
+  title: '', description: '', price: '', source: '', howToGet: '', active: true,
+};
+
 export const MerchPage: React.FC<MerchPageProps> = ({ onNavigateHome, onNavigateSignUp }) => {
+  const { isAdmin } = useAuth();
+  const [items, setItems] = useState<FundraisingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<FundraisingItemInput | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const loadItems = async () => {
+    setLoading(true);
+    const remote = await getFundraisingItems();
+    setItems(remote || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadItems(); }, []);
+
+  const save = async () => {
+    if (!editing || !editing.title.trim() || !editing.price.trim() || !editing.source.trim() || !editing.howToGet.trim()) {
+      setMessage('Please fill in the title, price, where to get it, and how to get it.');
+      return;
+    }
+    setSaving(true);
+    const result = await manageFundraisingItem(editing, editing.id ? 'update' : 'create');
+    setSaving(false);
+    if (!result.success) { setMessage(result.message || 'Could not save.'); return; }
+    setEditing(null); setMessage('Fundraising information saved.'); await loadItems();
+  };
+
+  const remove = async (item: FundraisingItem) => {
+    if (!confirm(`Remove “${item.title}” from the fundraising page?`)) return;
+    const result = await manageFundraisingItem({ id: item.id, ...emptyForm, title: item.title }, 'delete');
+    if (!result.success) { setMessage(result.message || 'Could not remove item.'); return; }
+    await loadItems();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-10 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-sky-200">
-          <button
-            onClick={onNavigateHome}
-            className="inline-flex items-center gap-2 text-xs font-bold text-sky-800 hover:text-sky-950 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+          <button onClick={onNavigateHome} className="inline-flex items-center gap-2 text-xs font-bold text-sky-800 hover:text-sky-950 cursor-pointer">
+            <ArrowLeft className="w-4 h-4" /> Back to Home
           </button>
-
-          <span className="text-xs text-emerald-800 font-bold font-mono">
-            DTPBC Seasonal Apparel
-          </span>
+          {isAdmin && <button onClick={() => setEditing({ ...emptyForm })} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-700"><Plus className="w-4 h-4" /> Add Fundraiser</button>}
         </div>
 
-        {/* Header */}
         <div className="max-w-3xl mb-12">
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2">
-            <ShoppingBag className="w-4 h-4 text-emerald-700" />
-            <span>Seasonal Drops & Team Gear</span>
-          </div>
-          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-            Club Merch & Apparel
-          </h1>
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2"><Heart className="w-4 h-4" /> Club Fundraising</div>
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">Fundraising</h1>
           <p className="mt-3 text-base text-slate-700 leading-relaxed">
-            Joining the David Thompson Pickleball Club is always <strong className="text-emerald-800 font-bold">100% Free</strong>. However, we occasionally run limited-edition custom merch drops so students and staff can represent DTPBC with pride.
+            Fundraisers help DTPBC raise money for equipment, tournaments, and club activities. This page is <strong>information only</strong> — there are no purchases or payments through the website.
           </p>
         </div>
 
-        {/* 100% Free Membership Banner */}
-        <div className="mb-10 p-5 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
-            <div>
-              <p className="text-xs font-bold text-slate-900">Membership is 100% Free</p>
-              <p className="text-[11px] text-slate-600">Merch is strictly optional and proceeds fund gym equipment, replacement Franklin balls, and tournament prizes.</p>
-            </div>
-          </div>
-          <button
-            onClick={onNavigateSignUp}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-700 transition-colors whitespace-nowrap shadow-xs"
-          >
-            Join Free
-          </button>
-        </div>
-
-        {/* Merch Items Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {[
-            {
-              title: 'DTPBC Club Athletic Tee',
-              price: '$20.00',
-              tag: 'Pre-Order Drop',
-              colors: 'Light Blue with Dark Green Logo',
-              desc: 'Moisture-wicking athletic performance t-shirt featuring the David Thompson Secondary Pickleball Club chest crest.',
-            },
-            {
-              title: 'DTPBC Heavyweight Hoodie',
-              price: '$45.00',
-              tag: 'Winter Drop',
-              colors: 'Navy Blue & Dark Green Accents',
-              desc: 'Premium fleece hoodie warm-up sweater with double-lined hood and kangaroo pouch. Ideal for walking to school.',
-            },
-            {
-              title: 'Pro Tour Cushion Grip 3-Pack',
-              price: '$10.00',
-              tag: 'In-Gym Stock',
-              colors: 'Light Blue, Dark Green, White',
-              desc: 'Tacky non-slip absorbent overgrips to re-wrap your pickleball paddle handle for maximum kitchen control.',
-            },
-            {
-              title: 'Insulated Sports Bottle (750ml)',
-              price: '$18.00',
-              tag: 'Limited Stock',
-              colors: 'Matte Navy with Laser Engraving',
-              desc: 'Double-walled stainless steel bottle that keeps ice water freezing cold through 3 hours of gym scrimmages.',
-            },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl bg-white border border-sky-200 p-5 flex flex-col justify-between hover:border-sky-400 hover:shadow-md transition-all shadow-xs"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs mb-3">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-200 font-bold">
-                    {item.tag}
-                  </span>
-                  <span className="font-bold text-emerald-800 text-sm font-mono">{item.price}</span>
-                </div>
-
-                <div className="w-full h-32 rounded-xl bg-gradient-to-br from-sky-50 to-emerald-50 border border-sky-200 flex flex-col items-center justify-center mb-4 text-center p-3">
-                  <ShoppingBag className="w-8 h-8 text-sky-700 mb-1" />
-                  <span className="text-[10px] text-slate-600 font-mono font-medium">{item.colors}</span>
-                </div>
-
-                <h3 className="font-display text-base font-bold text-slate-900 mb-1">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                  {item.desc}
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100">
-                <a
-                  href="mailto:dtpickleballexecutive@gmail.com?subject=DTPBC Merch Order Request"
-                  className="w-full py-2.5 rounded-lg text-xs font-bold text-slate-800 bg-slate-100 hover:bg-sky-600 hover:text-white transition-colors block text-center border border-slate-200"
-                >
-                  Order / Inquire
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Contact ordering note */}
-        <div className="p-6 rounded-2xl bg-white border border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 shadow-xs">
+        <div className="mb-10 p-5 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-start gap-3">
+          <Info className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
           <div>
-            <p className="text-slate-900 font-bold">Have sizing questions or want to suggest a merch design?</p>
-            <p className="text-slate-600">Talk to Treasurer Kenny Le or email us anytime.</p>
+            <p className="text-xs font-bold text-slate-900">How fundraising works</p>
+            <p className="text-[11px] text-slate-600">Each listing shows the price, where to get the item, and how to participate. We do not collect payment, orders, or card information on this website.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 font-mono font-semibold text-sky-800">
-            <a href="mailto:dtpickleballexecutive@gmail.com" className="hover:underline">
-              dtpickleballexecutive@gmail.com
-            </a>
-            <span className="text-slate-300">·</span>
-            <a href="mailto:dt.pickleball@outlook.com" className="hover:underline">
-              dt.pickleball@outlook.com
-            </a>
-          </div>
+        </div>
+
+        {loading ? <div className="text-sm text-slate-500">Loading fundraisers…</div> :
+          items.length === 0 ? <div className="rounded-2xl bg-white border border-sky-200 p-10 text-center text-sm text-slate-600">No fundraisers are currently listed.</div> :
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {items.filter(i => i.active).map(item => (
+              <div key={item.id} className="rounded-2xl bg-white border border-sky-200 p-6 shadow-xs hover:shadow-md transition-all">
+                <div className="flex items-start justify-between gap-4">
+                  <div><span className="inline-flex px-2 py-1 rounded-lg bg-emerald-100 text-emerald-900 text-[10px] font-bold uppercase tracking-wide">Fundraiser</span>
+                  <h2 className="font-display text-xl font-bold text-slate-900 mt-3">{item.title}</h2></div>
+                  {isAdmin && <div className="flex gap-1"><button title="Edit" onClick={() => setEditing(item)} className="p-2 rounded-lg hover:bg-sky-50 text-sky-700"><Pencil className="w-4 h-4" /></button><button title="Remove" onClick={() => remove(item)} className="p-2 rounded-lg hover:bg-red-50 text-red-700"><Trash2 className="w-4 h-4" /></button></div>}
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed mt-3">{item.description}</p>
+                <div className="mt-5 grid sm:grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3"><div className="text-[10px] font-bold uppercase text-emerald-800 flex items-center gap-1"><DollarSign className="w-3 h-3" /> Price</div><div className="font-bold text-slate-900 mt-1">{item.price}</div></div>
+                  <div className="rounded-xl bg-sky-50 border border-sky-200 p-3"><div className="text-[10px] font-bold uppercase text-sky-800 flex items-center gap-1"><MapPin className="w-3 h-3" /> Where to get it</div><div className="font-semibold text-slate-900 mt-1">{item.source}</div></div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-100"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">How to participate</p><p className="text-sm text-slate-700 mt-1 leading-relaxed">{item.howToGet}</p></div>
+              </div>
+            ))}
+          </div>}
+
+        <div className="mt-12 p-6 rounded-2xl bg-white border border-sky-200 shadow-xs">
+          <p className="text-slate-900 font-bold text-sm">Questions about a fundraiser?</p>
+          <p className="text-xs text-slate-600 mt-1">Ask a DTPBC executive or contact the club through the information provided on our website.</p>
+          <button onClick={onNavigateSignUp} className="mt-4 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-700">Join the Club</button>
         </div>
       </div>
+
+      {editing && isAdmin && <div className="fixed inset-0 z-50 bg-slate-950/40 flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-sky-200 shadow-2xl p-6">
+          <div className="flex items-center justify-between mb-5"><h2 className="font-display text-xl font-bold text-slate-900">{editing.id ? 'Edit Fundraiser' : 'Add Fundraiser'}</h2><button onClick={() => setEditing(null)}><X className="w-5 h-5 text-slate-500" /></button></div>
+          <div className="space-y-4">
+            {[
+              ['title','Title'],['price','Price'],['source','Where to get it'],['howToGet','How to participate']
+            ].map(([key,label]) => <label key={key} className="block text-xs font-bold text-slate-700">{label}<input value={(editing as any)[key]} onChange={e => setEditing({...editing,[key]:e.target.value})} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal outline-none focus:border-emerald-500" /></label>)}
+            <label className="block text-xs font-bold text-slate-700">Description<textarea value={editing.description} onChange={e => setEditing({...editing,description:e.target.value})} rows={4} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-normal outline-none focus:border-emerald-500" /></label>
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" checked={editing.active !== false} onChange={e => setEditing({...editing,active:e.target.checked})} /> Visible on fundraising page</label>
+            <div className="flex justify-end gap-2 pt-2"><button onClick={() => setEditing(null)} className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Cancel</button><button disabled={saving} onClick={save} className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-800 text-white">{saving ? 'Saving…' : 'Save Fundraiser'}</button></div>
+          </div>
+        </div>
+      </div>}
     </div>
   );
 };
