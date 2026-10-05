@@ -100,9 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resolveAuthProfileId = async (memberId: string) => {
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(memberId)) return memberId;
+    await refreshRoster();
+    const refreshed = await getRemoteRoster();
+    return refreshed?.find(member => member.id === memberId || member.memberId === memberId)?.id || null;
+  };
+
   const promoteMemberToExecutive = async (memberId: string) => {
     if (!isAdmin) return { success: false, message: 'Executive or teacher sponsor access required.' };
-    const result = await promoteRemoteMemberToExecutive(memberId);
+    const authProfileId = await resolveAuthProfileId(memberId);
+    if (!authProfileId) return { success: false, message: 'Could not find the member account in Supabase.' };
+    const result = await promoteRemoteMemberToExecutive(authProfileId);
     if (result.success) await refreshRoster();
     return result;
   };
@@ -110,8 +119,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteMember = async (memberId: string) => {
     if (!isAdmin) return { success: false, message: 'Executive access required.' };
     if (memberId === currentUser?.id) return { success: false, message: 'You cannot delete your own account from the roster.' };
-    const result = await deleteRemoteMember(memberId);
-    if (result.success) setAllMembers(prev => prev.filter(member => member.id !== memberId));
+    const authProfileId = await resolveAuthProfileId(memberId);
+    if (!authProfileId) return { success: false, message: 'Could not find the member account in Supabase.' };
+    const result = await deleteRemoteMember(authProfileId);
+    if (result.success) setAllMembers(prev => prev.filter(member => member.id !== memberId && member.id !== authProfileId));
     return result;
   };
 
