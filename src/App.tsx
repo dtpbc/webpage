@@ -40,6 +40,9 @@ function AppContent() {
   const [currentRoute, setCurrentRoute] = useState<AppRoute>(() => parseRouteFromPath());
   const { currentUser } = useAuth();
 
+  // Legacy /merch URLs resolve to /fundraising.
+  useEffect(() => { if (window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase() === 'merch') window.history.replaceState(null, '', '/fundraising'); }, []);
+
   // Handle browser back and forward button clicks
   useEffect(() => {
     const handlePopState = () => {
@@ -116,7 +119,7 @@ function AppContent() {
               onJoinClick={() => navigate('signup')}
               onNavigateSchedule={() => navigate('schedule')}
               onNavigateExecs={() => navigate('execs')}
-              onNavigateMerch={() => navigate('merch')}
+              onNavigateMerch={() => navigate('fundraising')}
             />
             <VolunteerSection />
             <ExecutivesSection onNavigateExecs={() => navigate('execs')} />
