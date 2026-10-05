@@ -72,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [events, setEvents] = useState<SpecialEvent[]>(() => {
+    if (isSupabaseConfigured) return [];
     const saved = localStorage.getItem('dtpbc_events_v5');
     return saved ? JSON.parse(saved) : [];
   });
