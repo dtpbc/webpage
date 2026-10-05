@@ -265,3 +265,45 @@ $$;
 
 revoke all on function public.promote_dtpbc_member_to_executive(uuid) from public;
 grant execute on function public.promote_dtpbc_member_to_executive(uuid) to authenticated;
+
+
+-- Attendance records are stored by event so the same student can attend
+-- multiple different events while duplicate check-ins are prevented per event.
+create table if not exists public.attendance (
+  id text primary key,
+  member_id text not null,
+  student_id text not null,
+  student_name text not null,
+  grade text not null,
+  timestamp text not null,
+  scanned_by text not null,
+  event_id text not null,
+  event_title text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.attendance enable row level security;
+
+drop policy if exists "DTPBC authenticated attendance read" on public.attendance;
+create policy "DTPBC authenticated attendance read"
+on public.attendance for select
+to authenticated
+using (true);
+
+drop policy if exists "DTPBC authenticated attendance insert" on public.attendance;
+create policy "DTPBC authenticated attendance insert"
+on public.attendance for insert
+to authenticated
+with check (true);
+
+drop policy if exists "DTPBC authenticated attendance delete" on public.attendance;
+create policy "DTPBC authenticated attendance delete"
+on public.attendance for delete
+to authenticated
+using (true);
+
+create index if not exists attendance_event_id_idx
+on public.attendance(event_id);
+
+create index if not exists attendance_student_event_idx
+on public.attendance(event_id, student_id);
