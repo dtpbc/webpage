@@ -52,26 +52,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [allMembers, setAllMembers] = useState<User[]>(() => {
     const saved = localStorage.getItem('dtpbc_members_v5');
-    const members: User[] = saved ? JSON.parse(saved) : [];
-
-    // Keep the club membership ID permanently separate from the school's student ID.
-    // This also repairs older local records that may have accidentally reused the student ID.
-    const usedMemberIds = new Set<string>();
-    return members.map((member) => {
-      const existing = String(member.memberId || '').trim();
-      const looksLikeStudentId = /^\d{7}$/.test(existing) || existing === member.studentId;
-      if (existing && !looksLikeStudentId && !usedMemberIds.has(existing)) {
-        usedMemberIds.add(existing);
-        return member;
-      }
-
-      let replacement = '';
-      do {
-        replacement = generateMemberId();
-      } while (usedMemberIds.has(replacement));
-      usedMemberIds.add(replacement);
-      return { ...member, memberId: replacement };
-    });
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -118,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdminCalendarModalOpen, setIsAdminCalendarModalOpen] = useState<boolean>(false);
   const [editingSession, setEditingSession] = useState<ClubSession | null>(null);
 
-  const isAdmin = currentUser?.role === 'executive' || currentUser?.role === 'sponsor_teacher';
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'executive' || currentUser?.role === 'sponsor_teacher';
 
   // Supabase Auth is the source of truth for signed-in users.
   useEffect(() => {
