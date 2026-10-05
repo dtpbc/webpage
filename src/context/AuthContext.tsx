@@ -412,7 +412,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setEvents(prev => [...prev, newEvent]);
     if (isSupabaseConfigured) {
-      await upsertRemoteEvent(newEvent);
+      try {
+        const saved = await upsertRemoteEvent(newEvent);
+        if (!saved) console.error('Event was not saved to Supabase.');
+      } catch (error) {
+        console.error('Event was added locally but could not be saved to Supabase:', error);
+      }
     }
   };
 
