@@ -37,7 +37,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Clickable calendar state
-  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<string | null>(null);
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date(2026, 9, 1)); // October 2026
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<number | null>(null);
 
@@ -147,23 +146,16 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   // a date are treated as recurring weekly sessions based on their day field.
   const getSessionsForCalendarDate = (date: Date) => {
     const dateKey = formatCalendarDate(date);
-    const dayName = dayNames[date.getDay()].toLowerCase();
-    return sessions.filter(s => {
-      if (s.date) return s.date === dateKey;
-      return .toLowerCase().includes(dayName);
-    });
+    return sessions.filter(s => s.date === dateKey);
   };
 
   const filteredSessions = sessions.filter((s) => {
     if (selectedCalendarDate !== null) {
       const selectedDate = new Date(year, month, selectedCalendarDate);
       const dateKey = formatCalendarDate(selectedDate);
-      const dayName = dayNames[selectedDate.getDay()].toLowerCase();
-      if (s.date) return s.date === dateKey;
-      return .toLowerCase().includes(dayName);
+      return s.date === dateKey;
     }
-    if (!selectedDayOfWeek) return true;
-    return .toLowerCase().includes(selectedDayOfWeek.toLowerCase());
+    return true;
   });
 
   return (
@@ -245,7 +237,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               </button>
               <button
                 onClick={() => {
-                  setSelectedDayOfWeek(null);
                   setSelectedCalendarDate(null);
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
@@ -294,8 +285,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                     else if (dayOfWeek === 3) setSelectedDayOfWeek('Wednesday');
                     else if (dayOfWeek === 1) setSelectedDayOfWeek('Monday');
                     else if (dayOfWeek === 5) setSelectedDayOfWeek('Friday');
-                    else setSelectedDayOfWeek(null);
-                  }}
+                    else }}
                   className={`p-2 sm:p-2.5 rounded-xl border text-left min-h-[58px] flex flex-col justify-between transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-sky-100 border-sky-500 ring-2 ring-sky-400/30'
@@ -336,7 +326,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               </span>
               <button
                 onClick={() => {
-                  setSelectedDayOfWeek(null);
                   setSelectedCalendarDate(null);
                 }}
                 className="text-xs font-bold text-sky-800 hover:underline"
@@ -365,7 +354,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               <p className="font-bold text-slate-700">No scheduled sessions for this day</p>
               <button
                 onClick={() => {
-                  setSelectedDayOfWeek(null);
                   setSelectedCalendarDate(null);
                 }}
                 className="text-sky-800 font-bold hover:underline"
@@ -387,7 +375,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-sky-800 uppercase tracking-wider">
-                          {session.day}
+                          {session.date}
                         </span>
 
                         <div className="flex items-center gap-2">
