@@ -113,19 +113,19 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
             <ArrowLeft className="w-4 h-4" /> Return to Home
           </button>
           <div className="inline-flex items-center gap-2 text-xs font-bold text-emerald-800">
-            <ShieldCheck className="w-4 h-4" /> Executive & Teacher Sponsor Roster
+            <ShieldCheck className="w-4 h-4" /> Members & Admins Roster
           </div>
         </div>
 
         <div className="mb-7">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2">Private Staff Area</p>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Member Roster</h1>
-          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members.</p>
+          <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members. Admins are only executives and teacher sponsors; there is no separate admin role.</p>
         </div>
 
         <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-            <div className="flex items-center justify-between gap-3"><div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} staff</div><button onClick={startAdd} className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm px-4 py-2.5"><Plus className="w-4 h-4" /> Add User Manually</button></div>
+            <div className="flex items-center justify-between gap-3"><div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} admin{roster.filter(member => member.role !== 'member').length === 1 ? '' : 's'}</div><button onClick={startAdd} className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm px-4 py-2.5"><Plus className="w-4 h-4" /> Add User Manually</button></div>
             <label className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, ID..." className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm outline-none focus:border-sky-500 focus:bg-white" />
@@ -182,7 +182,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
             </div>}
 
             {editing ? <div className="mt-6 space-y-3">
-              {([['name','Name'],['email','Email'],['studentId','Student ID'],['memberId','DTPBC Member ID']] as const).map(([key,label]) => <label key={key} className="block text-xs font-bold text-slate-600">{label}<input value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>)}
+              {([['name','Name'],['email','Email'],['studentId','Student ID']] as const).map(([key,label]) => <label key={key} className="block text-xs font-bold text-slate-600">{label}<input value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>)}<label className="block text-xs font-bold text-slate-600">DTPBC Member ID<div className="mt-1 flex items-stretch"><span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-300 bg-slate-200 text-slate-500 font-mono text-sm select-none">PB-</span><input value={form.memberId.replace(/^PB-/i, '')} onChange={e => setForm({ ...form, memberId: `PB-${e.target.value.replace(/^PB-/i, '')}` })} placeholder="1234" className="w-full rounded-r-xl border border-slate-300 px-3 py-2.5 text-sm font-mono" /></div></label>}
               <div className="grid grid-cols-2 gap-3"><label className="text-xs font-bold text-slate-600">Grade<select value={form.grade} onChange={e => setForm({ ...form, grade: e.target.value as User['grade'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{['Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','Staff / Teacher'].map(v => <option key={v}>{v}</option>)}</select></label><label className="text-xs font-bold text-slate-600">Role<select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as User['role'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"><option value="member">Member</option><option value="executive">Executive</option><option value="sponsor_teacher">Teacher Sponsor</option></select></label></div>
               <label className="block text-xs font-bold text-slate-600">Skill Level<select value={form.skillLevel} onChange={e => setForm({ ...form, skillLevel: e.target.value as User['skillLevel'] })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">{['Beginner (Learning Rules)','Intermediate (Consistent Rallies)','Advanced (Competitive Play)'].map(v => <option key={v}>{v}</option>)}</select></label>
               <button disabled={saving} onClick={saveProfile} className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm py-3 disabled:opacity-50"><Save className="w-4 h-4" /> {saving ? 'Saving…' : adding ? 'Create User & Send Reset Email' : 'Save Profile'}</button>
