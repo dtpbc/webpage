@@ -173,8 +173,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, message: 'Supabase is not configured. Please contact the club executive team.' };
     }
 
+    const value = email.trim();
+    if (!value.includes('@')) {
+      return { success: false, message: 'Please sign in using your registered email address.' };
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: value,
       password,
     });
 
