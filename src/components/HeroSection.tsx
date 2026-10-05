@@ -70,7 +70,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="inline-flex items-center justify-center gap-2 px-5 py-3.5 text-xs font-bold text-emerald-900 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200/80 border border-emerald-300 rounded-xl transition-colors cursor-pointer"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Club Merch Drops</span>
+              <span>Fundraising</span>
             </button>
           </div>
 
@@ -93,7 +93,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="space-y-0.5">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
                 <ShieldCheck className="w-4 h-4" />
-                <span>100% Free Student Club · Optional Seasonal Merch</span>
+                <span>100% Free Student Club · Optional Fundraising</span>
               </div>
               <p className="text-xs text-slate-600">
                 Every David Thompson student can play for free. We also host occasional club tee and hoodie pre-orders.
