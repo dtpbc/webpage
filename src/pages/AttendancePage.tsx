@@ -13,6 +13,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
     allMembers, 
     attendanceRecords, 
     recordAttendance,
+    recordGuestAttendance,
     removeAttendanceRecord,
     clearAttendance,
     events
@@ -22,7 +23,9 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   const [barcodeInput, setBarcodeInput] = useState('');
   const [searchRosterQuery, setSearchRosterQuery] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
-  const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
+  const [guestName, setGuestName] = useState('');
+  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [feedback, setFeedback = useState<{ success: boolean; message: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus barcode input for quick scanning with handheld USB/Bluetooth barcode scanner
@@ -228,6 +231,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                 )}
               </div>
             </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4"><div className="flex items-center justify-between gap-3"><div><h4 className="text-sm font-bold text-slate-900">Add Guest</h4><p className="text-[11px] text-slate-500">For visitors who are not DTPBC members.</p></div><button type="button" onClick={() => setShowGuestForm(v => !v)} className="rounded-lg bg-slate-700 text-white px-3 py-2 text-xs font-bold">{showGuestForm ? 'Cancel' : 'Add Guest'}</button></div>{showGuestForm && <form onSubmit={e => { e.preventDefault(); const res = recordGuestAttendance(guestName, selectedEventId); setFeedback(res); if (res.success) { setGuestName(''); setShowGuestForm(false); } }} className="mt-3 flex gap-2"><input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Guest full name" required className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white" /><button type="submit" className="rounded-lg bg-emerald-800 text-white px-4 py-2.5 text-xs font-bold">Check In</button></form>}</div>
           </div>
 
           {/* Today's Logged Attendance Column */}
@@ -292,9 +296,9 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                         <div className="space-y-0.5">
                           <p className="text-xs font-bold text-slate-900">
                             {att.studentName}
-                          </p>
+                          </p>{att.memberId === 'GUEST' && <span className="px-2 py-0.5 rounded bg-slate-300 text-slate-600 text-[9px] font-bold">GUEST</span>}
                           <p className="text-[11px] text-slate-600 font-mono">
-                            School #{att.studentId} · Club {att.memberId || 'PB'} · {att.grade}
+                            {att.memberId === 'GUEST' ? 'Guest' : `School #${att.studentId} · Club ${att.memberId}`} · {att.grade}
                           </p>
                           <p className="text-[10px] text-sky-800 font-semibold">
                             Logged by: {att.scannedBy}
