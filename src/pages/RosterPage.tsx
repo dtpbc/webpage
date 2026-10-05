@@ -165,21 +165,21 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
           <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl bg-white shadow-2xl p-5 sm:p-7">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-sky-900 font-extrabold shrink-0">
+                {selected ? <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-sky-900 font-extrabold shrink-0">
                   {selected.name.split(' ').map(p => p[0]).join('').slice(0,2)}
-                </div>
+                </div> : <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-900 font-extrabold shrink-0"><Plus className="w-6 h-6" /></div>}
                 <div className="min-w-0">
-                  <h2 className="text-xl font-extrabold text-slate-900 truncate">{selected.name}</h2>
-                  <p className="text-xs text-emerald-800 font-bold">{selected.memberId} · {selected.grade}</p>
+                  <h2 className="text-xl font-extrabold text-slate-900 truncate">{selected ? selected.name : 'Add User Manually'}</h2>
+                  {selected && <p className="text-xs text-emerald-800 font-bold">{selected.memberId} · {selected.grade}</p>}
                 </div>
               </div>
-              <button onClick={() => setSelected(null)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setSelected(null); setAdding(false); setEditing(false); }} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"><X className="w-5 h-5" /></button>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {selected && <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] font-bold uppercase text-slate-500">Email</div><div className="text-sm font-semibold break-all mt-1">{selected.email}</div></div>
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] font-bold uppercase text-slate-500">Student ID</div><div className="text-sm font-mono font-semibold mt-1">#{selected.studentId}</div></div>
-            </div>
+            </div>}
 
             {editing ? <div className="mt-6 space-y-3">
               {([['name','Name'],['email','Email'],['studentId','Student ID'],['memberId','DTPBC Member ID']] as const).map(([key,label]) => <label key={key} className="block text-xs font-bold text-slate-600">{label}<input value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>)}
