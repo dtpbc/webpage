@@ -228,3 +228,40 @@ $$;
 
 revoke all on function public.delete_dtpbc_member(uuid) from public;
 grant execute on function public.delete_dtpbc_member(uuid) to authenticated;
+
+
+-- Promote a regular member to executive. Only an existing executive or teacher
+-- sponsor may perform this action.
+create or replace function public.promote_dtpbc_member_to_executive(target_member_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  caller_role text;
+  target_role text;
+begin
+  select p.role into caller_role from public.profiles p where p.id = auth.uid();
+  if caller_role not in ('executive', 'sponsor_teacher') then
+    return jsonb_build_object('success', false, 'message', 'Executive or teacher sponsor access required.');
+  end if;
+
+  select p.role into target_role from public.profiles p where p.id = target_member_id;
+  if target_role is null then
+    return jsonb_build_object('success', false, 'message', 'Member not found.');
+  end if;
+  if target_role <> 'member' then
+    return jsonb_build_object('success', false, 'message', 'Only regular members can be promoted here.');
+  end if;
+
+  update public.profiles
+  set role = 'executive'
+  where id = target_member_id;
+
+  return jsonb_build_object('success', true);
+end;
+$$;
+
+revoke all on function public.promote_dtpbc_member_to_executive(uuid) from public;
+grant execute on function public.promote_dtpbc_member_to_executive(uuid) to authenticated;
