@@ -127,8 +127,22 @@ export async function adminManageUser(input: AdminUserInput, action: 'create' | 
   });
 
   if (error) {
-    const detail = error.message || 'Unable to contact the user-management service.';
-    return { success: false, message: detail.includes('Failed to fetch') ? 'The profile-management Edge Function is not deployed or reachable yet. Deploy dtpbc-admin-user in Supabase, then try again.' : detail };
+    let detail = error.message || 'Unable to contact the user-management service.';
+    try {
+      const response = (error as any).context;
+      if (response && typeof response.json === 'function') {
+        const body = await response.json();
+        detail = body?.message || body?.error || detail;
+      }
+    } catch {
+      // Keep the SDK error when the Edge Function response body is unavailable.
+    }
+    return {
+      success: false,
+      message: detail.includes('Failed to fetch')
+        ? 'The profile-management Edge Function is not deployed or reachable yet. Deploy dtpbc-admin-user in Supabase, then try again.'
+        : detail,
+    };
   }
   return data || { success: false, message: 'Unable to manage user.' };
 }
