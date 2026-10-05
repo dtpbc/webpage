@@ -16,6 +16,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
     logout, 
   } = useAuth();
 
+  const goRoster = () => {
+    window.history.pushState(null, '', '/roster');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   const initials = currentUser
     ? currentUser.name.split(' ').map(p => p[0]).join('').slice(0, 2)
     : '';
@@ -74,8 +79,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
           {currentUser ? (
             <div className="flex items-center gap-2">
               {isAdmin && (
-                <button
-                  onClick={() => navigate('attendance')}
+                <>
+                  <button
+                    onClick={goRoster}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-50 border border-slate-300 hover:bg-sky-50 hover:border-sky-300 transition-colors cursor-pointer"
+                    title="Member Roster"
+                  >
+                    <Users className="w-3.5 h-3.5 text-sky-700" />
+                    <span>Roster</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('attendance')}
                   className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                     currentRoute === 'attendance'
                       ? 'bg-emerald-800 text-white font-bold'
@@ -86,6 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
                   <Scan className="w-3.5 h-3.5" />
                   <span>Scanner</span>
                 </button>
+                </>
               )}
 
               <button
