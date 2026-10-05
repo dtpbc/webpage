@@ -204,8 +204,8 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
                 </button>
               )}
             </div>
-            {message && <p className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">{message}</p>}
           </div>
+          {message && <p className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">{message}</p>}
         </div>
       )}
     </div>
