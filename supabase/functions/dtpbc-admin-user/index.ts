@@ -7,7 +7,8 @@ const corsHeaders = {
 };
 
 type Payload = {
-  action: 'create' | 'update';
+  action: 'create' | 'update' | 'bulk_create';
+  users?: Array<{ name: string; email: string; studentId?: string; grade: string; skillLevel?: string; role?: 'member' | 'executive' | 'sponsor_teacher' }>;
   id?: string;
   name: string;
   email: string;
@@ -81,6 +82,89 @@ export default {
 
       if (!name || !email || !email.includes('@')) {
         return Response.json({ success: false, message: 'Name and a valid email address are required.' }, { status: 400, headers: corsHeaders });
+      }
+
+      if (payload.action === 'bulk_create') {
+        const users = payload.users || [];
+        const results = [];
+
+        for (const input of users) {
+          const userName = (input.name || '').trim();
+          const userEmail = (input.email || '').trim().toLowerCase();
+          const userGrade = input.grade || 'Grade 9';
+          const userSkill = input.skillLevel || 'Beginner (Learning Rules)';
+          const userRole = input.role || 'member';
+
+          if (!userName || !userEmail || !userEmail.includes('@')) {
+            results.push({ email: userEmail, success: false, message: 'Invalid name or email.' });
+            continue;
+          }
+
+          const userNames = splitName(userName);
+          const studentId = userGrade === 'Staff / Teacher' ? '' : (input.studentId || '');
+
+          const { data: created, error: createError } =
+            await ctx.supabaseAdmin.auth.admin.createUser({
+              email: userEmail,
+              password: crypto.randomUUID() + 'Aa1!',
+              email_confirm: true,
+              user_metadata: {
+                name: userName,
+                first_name: userNames.first_name,
+                last_name: userNames.last_name,
+                studentId,
+                student_id: studentId,
+                grade: userGrade,
+                skillLevel: userSkill,
+                skill_level: userSkill,
+              },
+            });
+
+          if (createError || !created.user) {
+            results.push({ email: userEmail, success: false, message: createError?.message || 'Unable to create account.' });
+            continue;
+          }
+
+          let memberId = '';
+          for (let attempt = 0; attempt < 100; attempt++) {
+            const randomNumber = Math.floor(Math.random() * 10000);
+            const candidate = 'PB-' + randomNumber.toString().padStart(4, '0');
+            const { data: existing } = await ctx.supabaseAdmin.from('profiles').select('id').eq('member_id', candidate).maybeSingle();
+            if (!existing) { memberId = candidate; break; }
+          }
+
+          if (!memberId) {
+            await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
+            results.push({ email: userEmail, success: false, message: 'Could not generate a unique member number.' });
+            continue;
+          }
+
+          const { error: profileError } = await ctx.supabaseAdmin.from('profiles').upsert({
+            id: created.user.id,
+            member_id: memberId,
+            first_name: userNames.first_name,
+            last_name: userNames.last_name,
+            student_id: studentId,
+            grade: userGrade,
+            email: userEmail,
+            role: userRole,
+            skill_level: userSkill,
+            join_date: new Date().toISOString(),
+          });
+
+          if (profileError) {
+            await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
+            results.push({ email: userEmail, success: false, message: 'Profile setup failed: ' + profileError.message });
+            continue;
+          }
+
+          const origin = req.headers.get('origin') || 'https://web.dtpbc.workers.dev';
+          const { error: resetError } = await ctx.supabase.auth.resetPasswordForEmail(userEmail, { redirectTo: origin + '/reset-password' });
+
+          results.push({ email: userEmail, success: true, memberId, passwordResetEmailSent: !resetError, warning: resetError?.message || null });
+        }
+
+        return Response.json({ success: true, results }, { headers: corsHeaders });
       }
 
       const names = splitName(name);
