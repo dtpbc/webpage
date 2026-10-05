@@ -309,3 +309,80 @@ on public.attendance(event_id);
 
 create index if not exists attendance_student_event_idx
 on public.attendance(event_id, student_id);
+
+
+-- Public fundraising information. No checkout/payment data is stored here.
+create table if not exists public.fundraising_items (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null default '',
+  price text not null,
+  source text not null,
+  how_to_get text not null,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.fundraising_items enable row level security;
+
+drop policy if exists "DTPBC public fundraising read" on public.fundraising_items;
+create policy "DTPBC public fundraising read"
+on public.fundraising_items for select
+to anon, authenticated
+using (active = true);
+
+create or replace function public.get_dtpbc_fundraising_items()
+returns jsonb
+language sql
+security definer
+set search_path = ''
+as $$
+  select coalesce(jsonb_agg(to_jsonb(f) order by f.created_at desc), '[]'::jsonb)
+  from public.fundraising_items f
+  where f.active = true;
+$$;
+
+revoke all on function public.get_dtpbc_fundraising_items() from public;
+grant execute on function public.get_dtpbc_fundraising_items() to anon, authenticated;
+
+create or replace function public.manage_dtpbc_fundraising_item(item_id uuid, action text, item_data jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  caller_role text;
+begin
+  select role into caller_role from public.profiles where id = auth.uid();
+  if caller_role not in ('executive', 'sponsor_teacher') then
+    return jsonb_build_object('success', false, 'message', 'Executive or teacher sponsor access required.');
+  end if;
+
+  if action = 'create' then
+    insert into public.fundraising_items (title, description, price, source, how_to_get, active)
+    values (
+      trim(item_data->>'title'), coalesce(item_data->>'description',''),
+      trim(item_data->>'price'), trim(item_data->>'source'),
+      trim(item_data->>'how_to_get'), coalesce((item_data->>'active')::boolean, true)
+    );
+  elsif action = 'update' and item_id is not null then
+    update public.fundraising_items set
+      title=trim(item_data->>'title'), description=coalesce(item_data->>'description',''),
+      price=trim(item_data->>'price'), source=trim(item_data->>'source'),
+      how_to_get=trim(item_data->>'how_to_get'),
+      active=coalesce((item_data->>'active')::boolean, true), updated_at=now()
+    where id=item_id;
+  elsif action = 'delete' and item_id is not null then
+    delete from public.fundraising_items where id=item_id;
+  else
+    return jsonb_build_object('success', false, 'message', 'Invalid fundraising request.');
+  end if;
+
+  return jsonb_build_object('success', true);
+end;
+$$;
+
+revoke all on function public.manage_dtpbc_fundraising_item(uuid, text, jsonb) from public;
+grant execute on function public.manage_dtpbc_fundraising_item(uuid, text, jsonb) to authenticated;
