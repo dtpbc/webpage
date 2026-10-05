@@ -19,6 +19,7 @@ import { LoginPage } from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AttendancePage } from './pages/AttendancePage';
 import { RosterPage } from './pages/RosterPage';
+import { SponsorsPage } from './pages/SponsorsPage';
 import { Footer } from './components/Footer';
 
 function parseRouteFromPath(): AppRoute {
@@ -33,6 +34,7 @@ function parseRouteFromPath(): AppRoute {
   if (path === 'portal' || path === 'dashboard') return 'portal';
   if (path === 'attendance' || path === 'scanner') return 'attendance';
   if (path === 'roster') return 'roster';
+  if (path === 'sponsors') return 'sponsors';
   return 'home';
 }
 
@@ -69,7 +71,12 @@ function AppContent() {
       <Navbar currentRoute={currentRoute} navigate={navigate} />
 
       <main className="flex-grow">
-        {currentRoute === 'schedule' ? (
+        {currentRoute === 'sponsors' ? (
+          <SponsorsPage
+            onNavigateHome={() => navigate('home')}
+            onNavigateSignUp={() => navigate('signup')}
+          />
+        ) : currentRoute === 'schedule' ? (
           <SchedulePage
             onNavigateHome={() => navigate('home')}
             onNavigateSignUp={() => navigate('signup')}
