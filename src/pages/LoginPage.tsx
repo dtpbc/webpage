@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, User as UserIcon, Lock, KeyRound } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, KeyRound } from 'lucide-react';
 
 interface LoginPageProps {
   onNavigateHome: () => void;
@@ -39,15 +39,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateHome, onNavigate
               <span>David Thompson Pickleball Club</span>
             </div>
             <h1 className="font-display text-3xl font-extrabold text-slate-900">Student & Staff Login</h1>
-            <p className="text-xs sm:text-sm text-slate-600 mt-2">Sign in with your 7-digit Student ID, DTPBC Member ID, or registered email.</p>
+            <p className="text-xs sm:text-sm text-slate-600 mt-2">Sign in with your registered email address.</p>
           </div>
           {errorMsg && <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">{errorMsg}</div>}
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
-              <label className="block text-slate-800 font-semibold mb-1.5">Student ID, Club Member ID, or Email</label>
+              <label className="block text-slate-800 font-semibold mb-1.5">Email Address</label>
               <div className="relative">
-                <UserIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input type="text" required autoComplete="username" placeholder="1842109, PB-1001, or name@gmail.com" value={query} onChange={e => setQuery(e.target.value)} className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white" />
+                <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input type="email" required autoComplete="username" placeholder="name@gmail.com" value={query} onChange={e => setQuery(e.target.value)} className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white" />
               </div>
             </div>
             <div>
