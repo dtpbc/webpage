@@ -150,7 +150,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     const dayName = dayNames[date.getDay()].toLowerCase();
     return sessions.filter(s => {
       if (s.date) return s.date === dateKey;
-      return s.day.toLowerCase().includes(dayName);
+      return .toLowerCase().includes(dayName);
     });
   };
 
@@ -160,10 +160,10 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
       const dateKey = formatCalendarDate(selectedDate);
       const dayName = dayNames[selectedDate.getDay()].toLowerCase();
       if (s.date) return s.date === dateKey;
-      return s.day.toLowerCase().includes(dayName);
+      return .toLowerCase().includes(dayName);
     }
     if (!selectedDayOfWeek) return true;
-    return s.day.toLowerCase().includes(selectedDayOfWeek.toLowerCase());
+    return .toLowerCase().includes(selectedDayOfWeek.toLowerCase());
   });
 
   return (
