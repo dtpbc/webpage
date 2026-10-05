@@ -43,6 +43,9 @@ function AppContent() {
   // Legacy /merch URLs resolve to /fundraising.
   useEffect(() => { if (window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase() === 'merch') window.history.replaceState(null, '', '/fundraising'); }, []);
 
+  // Legacy /merch URLs resolve to /fundraising.
+  useEffect(() => { if (window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase() === 'merch') window.history.replaceState(null, '', '/fundraising'); }, []);
+
   // Handle browser back and forward button clicks
   useEffect(() => {
     const handlePopState = () => {
