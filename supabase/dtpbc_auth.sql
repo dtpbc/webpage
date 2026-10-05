@@ -178,10 +178,12 @@ begin
     raise exception 'Executive or teacher sponsor access required';
   end if;
 
-  select coalesce(jsonb_agg(to_jsonb(p) order by lower(p.first_name), lower(p.last_name)), '[]'::jsonb)
+  select coalesce(jsonb_agg(to_jsonb(p) order by
+    case when p.role = 'member' then 1 when p.role = 'executive' then 2 else 3 end,
+    lower(p.first_name), lower(p.last_name)
+  ), '[]'::jsonb)
     into roster
-  from public.profiles p
-  where p.role = 'member';
+  from public.profiles p;
 
   return roster;
 end;
