@@ -18,7 +18,7 @@ alter table public.profiles
 
 alter table public.profiles
   add constraint profiles_role_check
-  check (role in ('member', 'admin', 'executive', 'sponsor_teacher'));
+  check (role in ('member', 'executive', 'sponsor_teacher'));
 
 create or replace function public.generate_dtpbc_member_id()
 returns text
@@ -83,6 +83,10 @@ update public.profiles
 set member_id = public.generate_dtpbc_member_id()
 where id = 'a41392d9-14c3-4f40-a21b-e6b32e5b9765'
   and (member_id is null or trim(member_id) = '');
+
+update public.profiles
+set role = 'executive'
+where role = 'admin';
 
 update public.profiles
 set role = 'executive'
