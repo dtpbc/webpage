@@ -285,7 +285,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                     else if (dayOfWeek === 3) setSelectedDayOfWeek('Wednesday');
                     else if (dayOfWeek === 1) setSelectedDayOfWeek('Monday');
                     else if (dayOfWeek === 5) setSelectedDayOfWeek('Friday');
-                    else }}
+                    else if (dayOfWeek === 6) setSelectedDayOfWeek('Saturday');
+                  }}
                   className={`p-2 sm:p-2.5 rounded-xl border text-left min-h-[58px] flex flex-col justify-between transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-sky-100 border-sky-500 ring-2 ring-sky-400/30'
