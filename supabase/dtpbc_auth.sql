@@ -269,6 +269,24 @@ revoke all on function public.promote_dtpbc_member_to_executive(uuid) from publi
 grant execute on function public.promote_dtpbc_member_to_executive(uuid) to authenticated;
 
 
+-- Attendance policy helper. SECURITY DEFINER avoids depending on the caller's
+-- direct/RLS visibility into profiles while evaluating attendance policies.
+create or replace function public.get_dtpbc_current_profile()
+returns table(member_id text, role text)
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select p.member_id, p.role
+  from public.profiles p
+  where p.id = auth.uid()
+  limit 1;
+$;
+
+revoke all on function public.get_dtpbc_current_profile() from public;
+grant execute on function public.get_dtpbc_current_profile() to authenticated;
+
 -- Attendance records are stored by event so the same student can attend
 -- multiple different events while duplicate check-ins are prevented per event.
 create table if not exists public.attendance (
@@ -291,17 +309,9 @@ create policy "DTPBC authenticated attendance read"
 on public.attendance for select
 to authenticated
 using (
-  member_id = (
-    select p.member_id
-    from public.profiles p
-    where p.id = auth.uid()
-  )
-  or exists (
-    select 1
-    from public.profiles p
-    where p.id = auth.uid()
-      and p.role in ('executive', 'sponsor_teacher')
-  )
+  member_id = (select cp.member_id from public.get_dtpbc_current_profile() cp)
+  or (select cp.role from public.get_dtpbc_current_profile() cp)
+     in ('executive', 'sponsor_teacher')
 );
 
 drop policy if exists "DTPBC authenticated attendance insert" on public.attendance;
@@ -309,12 +319,8 @@ create policy "DTPBC authenticated attendance insert"
 on public.attendance for insert
 to authenticated
 with check (
-  exists (
-    select 1
-    from public.profiles p
-    where p.id = auth.uid()
-      and p.role in ('executive', 'sponsor_teacher')
-  )
+  (select cp.role from public.get_dtpbc_current_profile() cp)
+    in ('executive', 'sponsor_teacher')
 );
 
 drop policy if exists "DTPBC authenticated attendance delete" on public.attendance;
