@@ -310,8 +310,8 @@ export async function upsertRemoteEvent(event: SpecialEvent): Promise<boolean> {
   try {
     const { error } = await supabase.from('events').upsert(event);
     if (error) {
-      console.warn('Supabase upsert event error:', error.message);
-      return false;
+      console.error('Supabase upsert event error:', error.message, error.details, error.hint, error.code);
+      throw new Error(`Supabase event save failed: ${error.message}${error.details ? ` — ${error.details}` : ''}`);
     }
     return true;
   } catch (err) {
