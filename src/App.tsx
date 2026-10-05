@@ -17,6 +17,7 @@ import { MerchPage } from './pages/MerchPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { LoginPage } from './pages/LoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AttendancePage } from './pages/AttendancePage';
 import { RosterPage } from './pages/RosterPage';
 import { SponsorsPage } from './pages/SponsorsPage';
@@ -30,7 +31,8 @@ function parseRouteFromPath(): AppRoute {
   if (path === 'fundraising' || path === 'merch') return 'fundraising';
   if (path === 'login') return 'login';
   if (path === 'signup' || path === 'sign-up') return 'signup';
-  if (path === 'forgot-password' || path === 'forgotpassword' || path === 'reset-password') return 'forgot-password';
+  if (path === 'reset-password') return 'reset-password';
+  if (path === 'forgot-password' || path === 'forgotpassword') return 'forgot-password';
   if (path === 'portal' || path === 'dashboard') return 'portal';
   if (path === 'attendance' || path === 'scanner') return 'attendance';
   if (path === 'roster') return 'roster';
@@ -109,6 +111,8 @@ function AppContent() {
             onNavigateLogin={() => navigate('login')}
             onNavigateHome={() => navigate('home')}
           />
+        ) : currentRoute === 'reset-password' ? (
+          <ResetPasswordPage onNavigateLogin={() => navigate('login')} />
         ) : currentRoute === 'roster' ? (
           <RosterPage onNavigateHome={() => navigate('home')} />
         ) : currentRoute === 'attendance' ? (
