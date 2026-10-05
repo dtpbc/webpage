@@ -37,7 +37,7 @@ export default {
       const { data: callerProfile, error: profileError } = await ctx.supabaseAdmin
         .from('profiles')
         .select('id, role')
-        .eq('id', ctx.user.id)
+        .eq('id', ctx.userClaims?.sub)
         .maybeSingle();
 
       if (profileError || !callerProfile || !['executive', 'sponsor_teacher'].includes(callerProfile.role)) {
@@ -124,7 +124,7 @@ export default {
       }
 
       if (payload.action === 'update' && payload.id) {
-        if (payload.id === ctx.user.id && payload.role !== callerProfile.role) {
+        if (payload.id === ctx.userClaims?.sub && payload.role !== callerProfile.role) {
           return Response.json({ success: false, message: 'You cannot change your own staff role.' }, { status: 400, headers: corsHeaders });
         }
 
