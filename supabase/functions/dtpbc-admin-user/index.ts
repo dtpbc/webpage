@@ -34,10 +34,23 @@ export default {
     }
 
     try {
+      // @supabase/server exposes the verified JWT subject as `sub`.
+      // Keep `id` as a compatibility fallback for older context shapes.
+      const callerId =
+        (ctx.userClaims as any)?.sub ||
+        (ctx.userClaims as any)?.id;
+
+      if (!callerId) {
+        return Response.json(
+          { success: false, message: 'Your session is invalid or has expired. Please sign in again.' },
+          { status: 401, headers: corsHeaders }
+        );
+      }
+
       const { data: callerProfile, error: profileError } = await ctx.supabaseAdmin
         .from('profiles')
         .select('id, role')
-        .eq('id', ctx.userClaims?.sub)
+        .eq('id', callerId)
         .maybeSingle();
 
       if (profileError || !callerProfile || !['executive', 'sponsor_teacher'].includes(callerProfile.role)) {
@@ -124,7 +137,7 @@ export default {
       }
 
       if (payload.action === 'update' && payload.id) {
-        if (payload.id === ctx.userClaims?.sub && payload.role !== callerProfile.role) {
+        if (payload.id === callerId && payload.role !== callerProfile.role) {
           return Response.json({ success: false, message: 'You cannot change your own staff role.' }, { status: 400, headers: corsHeaders });
         }
 
