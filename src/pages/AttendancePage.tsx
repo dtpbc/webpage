@@ -14,9 +14,11 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
     attendanceRecords, 
     recordAttendance,
     removeAttendanceRecord,
-    clearAttendance
+    clearAttendance,
+    events
   } = useAuth();
 
+  const [selectedEventId, setSelectedEventId] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
   const [searchRosterQuery, setSearchRosterQuery] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
@@ -32,7 +34,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
     e.preventDefault();
     if (!barcodeInput.trim()) return;
 
-    const res = recordAttendance(barcodeInput.trim());
+    const res = recordAttendance(barcodeInput.trim(), selectedEventId);
     setFeedback(res);
     setBarcodeInput('');
     inputRef.current?.focus();
@@ -43,7 +45,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   };
 
   const handleQuickTapMember = (identifier: string) => {
-    const res = recordAttendance(identifier);
+    const res = recordAttendance(identifier, selectedEventId);
     setFeedback(res);
     setTimeout(() => {
       setFeedback(null);
@@ -99,6 +101,13 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
           {/* Scan Input Column */}
           <div className="lg:col-span-6 space-y-6">
             <div className="rounded-2xl bg-white border border-sky-200 p-6 shadow-md">
+              <label className="block mb-4">
+                <span className="block text-xs font-bold text-slate-700 mb-1.5">Attendance Event</span>
+                <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)} className="w-full px-3 py-3 bg-slate-50 border-2 border-sky-300 focus:border-emerald-700 rounded-xl text-sm text-slate-900 focus:outline-none">
+                  <option value="">Select an event...</option>
+                  {events.map(event => <option key={event.id} value={event.id}>{event.title} — {event.date}</option>)}
+                </select>
+              </label>
               <h3 className="font-display text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
                 <QrCode className="w-4 h-4 text-sky-700" />
                 <span>Scan Student Pass or Enter ID</span>
@@ -228,7 +237,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
                   <div>
                     <h3 className="font-display text-lg font-bold text-slate-900">
-                      Today's Gym Attendance Log
+                      Attendance Log — {selectedEventId ? (events.find(e => e.id === selectedEventId)?.title || 'Selected Event') : 'Select an Event'}
                     </h3>
                     <p className="text-xs text-slate-500">
                       {attendanceRecords.length} Students Checked In
