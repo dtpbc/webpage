@@ -35,35 +35,94 @@ export default {
     }
 
     try {
-      // @supabase/server exposes the verified JWT subject as `sub`.
-      // Keep `id` as a compatibility fallback for older context shapes.
+      // Resolve the authenticated user from the verified Supabase session.
+      // Use getUser() as the authoritative source instead of relying only on
+      // the shape of ctx.userClaims.
+      const { data: authUserData, error: authUserError } =
+        await ctx.supabase.auth.getUser();
+
       const callerId =
+        authUserData?.user?.id ||
         (ctx.userClaims as any)?.sub ||
         (ctx.userClaims as any)?.id;
 
-      if (!callerId) {
+      if (authUserError || !callerId) {
         return Response.json(
-          { success: false, message: 'Your session is invalid or has expired. Please sign in again.' },
-          { status: 401, headers: corsHeaders }
+          {
+            success: false,
+            message:
+              'Your session is invalid or has expired. Please sign in again.',
+          },
+          {
+            status: 401,
+            headers: corsHeaders,
+          },
         );
       }
 
       // This is a server-side admin operation. Read the caller's role with
       // the admin client so RLS on public.profiles cannot block staff access.
-      const { data: callerProfile, error: callerProfileError } = await ctx.supabaseAdmin
+      const {
+        data: callerProfile,
+        error: callerProfileError,
+      } = await ctx.supabaseAdmin
         .from('profiles')
-        .select('role')
+        .select('id, role, email')
         .eq('id', callerId)
         .maybeSingle();
 
+      if (callerProfileError) {
+        console.error(
+          'DTPBC caller profile lookup failed:',
+          callerProfileError,
+        );
+
+        return Response.json(
+          {
+            success: false,
+            message:
+              'Unable to verify your DTPBC staff permissions: ' +
+              callerProfileError.message,
+          },
+          {
+            status: 500,
+            headers: corsHeaders,
+          },
+        );
+      }
+
+      if (!callerProfile) {
+        return Response.json(
+          {
+            success: false,
+            message:
+              'Your authenticated account does not have a matching DTPBC profile.',
+          },
+          {
+            status: 403,
+            headers: corsHeaders,
+          },
+        );
+      }
+
+      const callerRole = String(callerProfile.role || '')
+        .trim()
+        .toLowerCase();
+
       if (
-        callerProfileError ||
-        !callerProfile ||
-        !['executive', 'sponsor_teacher'].includes(callerProfile.role)
+        callerRole !== 'executive' &&
+        callerRole !== 'sponsor_teacher'
       ) {
         return Response.json(
-          { success: false, message: 'Executive or teacher sponsor access required.' },
-          { status: 403, headers: corsHeaders }
+          {
+            success: false,
+            message:
+              `Executive or teacher sponsor access required. Your current DTPBC role is "${callerProfile.role}".`,
+          },
+          {
+            status: 403,
+            headers: corsHeaders,
+          },
         );
       }
 
