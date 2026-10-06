@@ -48,17 +48,6 @@ export default {
         );
       }
 
-      const callerId =
-        (ctx.userClaims as any)?.sub ||
-        (ctx.userClaims as any)?.id;
-
-      if (!callerId) {
-        return Response.json(
-          { success: false, message: 'Your session is invalid or has expired. Please sign in again.' },
-          { status: 401, headers: corsHeaders }
-        );
-      }
-
       // This is a server-side admin operation. Read the caller's role with
       // the admin client so RLS on public.profiles cannot block staff access.
       const { data: callerProfile, error: callerProfileError } = await ctx.supabaseAdmin
@@ -141,18 +130,20 @@ export default {
             continue;
           }
 
-          const { error: profileError } = await ctx.supabase.rpc('create_dtpbc_profile', {
-            p_id: created.user.id,
-            p_member_id: memberId,
-            p_first_name: userNames.first_name,
-            p_last_name: userNames.last_name,
-            p_student_id: studentId,
-            p_grade: userGrade,
-            p_email: userEmail,
-            p_role: userRole,
-            p_skill_level: userSkill,
-            p_join_date: new Date().toISOString(),
-          });
+          const { error: profileError } = await ctx.supabaseAdmin
+            .from('profiles')
+            .upsert({
+              id: created.user.id,
+              member_id: memberId,
+              first_name: userNames.first_name,
+              last_name: userNames.last_name,
+              student_id: studentId,
+              grade: userGrade,
+              email: userEmail,
+              role: userRole,
+              skill_level: userSkill,
+              join_date: new Date().toISOString(),
+            }, { onConflict: 'id' });
 
           if (profileError) {
             await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
