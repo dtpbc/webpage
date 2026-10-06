@@ -39,6 +39,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   // Clickable calendar state
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date(2026, 9, 1)); // October 2026
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<number | null>(null);
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<string | null>(null);
 
   const addToCalendar = (session: ClubSession) => {
     if (!session.date) {
@@ -128,11 +129,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   const prevMonth = () => {
     setCurrentMonthDate(new Date(year, month - 1, 1));
     setSelectedCalendarDate(null);
+    setSelectedDayOfWeek(null);
   };
 
   const nextMonth = () => {
     setCurrentMonthDate(new Date(year, month + 1, 1));
     setSelectedCalendarDate(null);
+    setSelectedDayOfWeek(null);
   };
 
   const formatCalendarDate = (date: Date) => {
@@ -238,6 +241,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               <button
                 onClick={() => {
                   setSelectedCalendarDate(null);
+                  setSelectedDayOfWeek(null);
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               >
@@ -280,12 +284,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                   key={`day-${dayNum}`}
                   onClick={() => {
                     setSelectedCalendarDate(dayNum);
-                    if (dayOfWeek === 2) setSelectedDayOfWeek('Tuesday');
-                    else if (dayOfWeek === 4) setSelectedDayOfWeek('Thursday');
-                    else if (dayOfWeek === 3) setSelectedDayOfWeek('Wednesday');
-                    else if (dayOfWeek === 1) setSelectedDayOfWeek('Monday');
-                    else if (dayOfWeek === 5) setSelectedDayOfWeek('Friday');
-                    else if (dayOfWeek === 6) setSelectedDayOfWeek('Saturday');
+                    setSelectedDayOfWeek(dayNames[dayOfWeek]);
                   }}
                   className={`p-2 sm:p-2.5 rounded-xl border text-left min-h-[58px] flex flex-col justify-between transition-all cursor-pointer ${
                     isSelected
@@ -328,6 +327,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               <button
                 onClick={() => {
                   setSelectedCalendarDate(null);
+                  setSelectedDayOfWeek(null);
                 }}
                 className="text-xs font-bold text-sky-800 hover:underline"
               >
@@ -356,6 +356,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
               <button
                 onClick={() => {
                   setSelectedCalendarDate(null);
+                  setSelectedDayOfWeek(null);
                 }}
                 className="text-sky-800 font-bold hover:underline"
               >
