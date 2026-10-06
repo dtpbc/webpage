@@ -125,36 +125,6 @@ export async function adminManageUser(input: AdminUserInput, action: 'create' | 
   return data || { success: false, message: 'Unable to manage user.' };
 }
 
-export async function getMemberByLogin(login: string): Promise<User | null> {
-  if (!supabase) return null;
-  const value = login.trim().toLowerCase();
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .or(`email.ilike.${value},student_id.eq.${value},member_id.ilike.${value}`)
-    .maybeSingle();
-
-  if (error) {
-    console.warn('Supabase profile lookup error:', error.message);
-    return null;
-  }
-
-  if (!data) return null;
-
-  return {
-    id: data.id,
-    memberId: data.member_id || '',
-    name: [data.first_name, data.last_name].filter(Boolean).join(' ') || data.name || 'DTPBC Member',
-    studentId: data.student_id || '',
-    grade: data.grade || 'Grade 10',
-    email: data.email || '',
-    role: data.role || 'member',
-    skillLevel: data.skill_level || 'Beginner (Learning Rules)',
-    joinDate: data.join_date || data.created_at || '',
-  } as User;
-}
-
 /**
  * Supabase SMTP Password Reset Helper
  */
