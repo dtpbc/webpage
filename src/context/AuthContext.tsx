@@ -274,14 +274,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updated: User = { ...currentUser, ...updatedData };
     setCurrentUser(updated);
     setAllMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+    // Profile writes are handled by the protected staff-management Edge
+    // Function. Never write public.profiles directly from the browser.
     if (supabase) {
-      supabase.from('profiles').update({
-        first_name: updated.name?.trim().split(/\s+/)[0] || updated.name,
-        last_name: updated.name?.trim().split(/\s+/).slice(1).join(' ') || '',
-        grade: updated.grade,
-        skill_level: updated.skillLevel,
-      }).eq('id', updated.id).then(({ error }) => {
-        if (error) console.warn('Supabase profile update error:', error.message);
+      import('../lib/supabase').then(({ adminManageUser }) => {
+        adminManageUser({
+          id: updated.id,
+          name: updated.name,
+          email: updated.email,
+          studentId: updated.studentId,
+          memberId: updated.memberId,
+          grade: updated.grade,
+          skillLevel: updated.skillLevel,
+          role: updated.role,
+        }, 'update').then(result => {
+          if (!result.success) console.warn('Supabase profile update error:', result.message);
+        });
       });
     }
   };
