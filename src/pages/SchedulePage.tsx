@@ -145,14 +145,38 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  // A dated session belongs only to its exact calendar date. Sessions without
-  // a date are treated as recurring weekly sessions based on their day field.
-  const getSessionsForCalendarDate = (date: Date) => {
-    const dateKey = formatCalendarDate(date);
-    return sessions.filter(s => s.date === dateKey);
+  // Completed dated sessions stay in Supabase for historical records and attendance,
+  // but are hidden from the public schedule. Sessions without a date remain visible.
+  const isSessionCompleted = (session: ClubSession) => {
+    if (!session.date) return false;
+
+    const now = new Date();
+    const sessionEnd = new Date(session.date + 'T23:59:59');
+
+    // If a time range is available, archive the session as soon as its end time passes.
+    const endTimeText = session.time?.split(/\\s*[–-]\\s*/)[1] || session.time;
+    const match = endTimeText?.match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+
+    if (match) {
+      let hour = Number(match[1]);
+      const minute = Number(match[2]);
+      const meridiem = match[3].toUpperCase();
+      if (meridiem === 'PM' && hour !== 12) hour += 12;
+      if (meridiem === 'AM' && hour === 12) hour = 0;
+      sessionEnd.setHours(hour, minute, 0, 0);
+    }
+
+    return sessionEnd < now;
   };
 
-  const filteredSessions = sessions.filter((s) => {
+  const visibleSessions = sessions.filter(session => !isSessionCompleted(session));
+
+  const getSessionsForCalendarDate = (date: Date) => {
+    const dateKey = formatCalendarDate(date);
+    return visibleSessions.filter(s => s.date === dateKey);
+  };
+
+  const filteredSessions = visibleSessions.filter((s) => {
     if (selectedCalendarDate !== null) {
       const selectedDate = new Date(year, month, selectedCalendarDate);
       const dateKey = formatCalendarDate(selectedDate);
