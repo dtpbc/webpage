@@ -66,10 +66,10 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('merch')}
+                  onClick={() => navigate('fundraising')}
                   className="hover:text-white transition-colors cursor-pointer text-emerald-400 font-semibold"
                 >
-                  Club Merch Drops
+                  Fundraising
                 </button>
               </li>
             </ul>
@@ -102,7 +102,7 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
                   onClick={() => navigate('forgot-password')}
                   className="hover:text-white transition-colors cursor-pointer text-slate-300"
                 >
-                  Forgot Password (SMTP Reset)
+                  Password Reset
                 </button>
               </li>
               <li>
@@ -113,6 +113,17 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
                   className="inline-flex items-center gap-1 hover:text-emerald-300 text-slate-300 transition-colors pt-1"
                 >
                   <span>Volunteer Hours Form (CLC 30)</span>
+                  <ExternalLink className="w-3 h-3 text-emerald-400" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://forms.gle/w2PhQhMEMwg6C6pq9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-emerald-300 text-slate-300 transition-colors pt-1"
+                >
+                  <span>Executive Sign-Up</span>
                   <ExternalLink className="w-3 h-3 text-emerald-400" />
                 </a>
               </li>
