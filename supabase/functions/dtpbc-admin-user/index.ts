@@ -60,21 +60,16 @@ export default {
         );
       }
 
-      // This is a server-side admin operation. Read the caller's role with
-      // the admin client so RLS on public.profiles cannot block staff access.
-      const {
-        data: callerProfile,
-        error: callerProfileError,
-      } = await ctx.supabaseAdmin
-        .from('profiles')
-        .select('id, role, email')
-        .eq('id', callerId)
-        .maybeSingle();
+      // Resolve the caller's DTPBC role through the SECURITY DEFINER RPC.
+      // This avoids querying public.profiles directly with the user-scoped client,
+      // which is intentionally protected by RLS.
+      const { data: callerRoleData, error: callerRoleError } =
+        await ctx.supabase.rpc('get_dtpbc_caller_role');
 
-      if (callerProfileError) {
+      if (callerRoleError) {
         console.error(
-          'DTPBC caller profile lookup failed:',
-          callerProfileError,
+          'DTPBC caller role lookup failed:',
+          callerRoleError,
         );
 
         return Response.json(
@@ -82,7 +77,7 @@ export default {
             success: false,
             message:
               'Unable to verify your DTPBC staff permissions: ' +
-              callerProfileError.message,
+              callerRoleError.message,
           },
           {
             status: 500,
@@ -91,21 +86,11 @@ export default {
         );
       }
 
-      if (!callerProfile) {
-        return Response.json(
-          {
-            success: false,
-            message:
-              'Your authenticated account does not have a matching DTPBC profile.',
-          },
-          {
-            status: 403,
-            headers: corsHeaders,
-          },
-        );
-      }
-
-      const callerRole = String(callerProfile.role || '')
+      const callerRole = String(
+        typeof callerRoleData === 'string'
+          ? callerRoleData
+          : (callerRoleData as any)?.role || '',
+      )
         .trim()
         .toLowerCase();
 
@@ -117,7 +102,7 @@ export default {
           {
             success: false,
             message:
-              `Executive or teacher sponsor access required. Your current DTPBC role is "${callerProfile.role}".`,
+              `Executive or teacher sponsor access required. Your current DTPBC role is "${callerRole || 'unknown'}".`,
           },
           {
             status: 403,
