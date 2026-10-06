@@ -59,22 +59,24 @@ export default {
         );
       }
 
-      // Use a SECURITY DEFINER RPC so RLS on profiles cannot block
-      // the caller-role check inside this Edge Function.
-      const { data: callerRole, error: roleError } =
-        await ctx.supabase.rpc('get_dtpbc_caller_role');
+      // This is a server-side admin operation. Read the caller's role with
+      // the admin client so RLS on public.profiles cannot block staff access.
+      const { data: callerProfile, error: callerProfileError } = await ctx.supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', callerId)
+        .maybeSingle();
 
       if (
-        roleError ||
-        !['executive', 'sponsor_teacher'].includes(callerRole)
+        callerProfileError ||
+        !callerProfile ||
+        !['executive', 'sponsor_teacher'].includes(callerProfile.role)
       ) {
         return Response.json(
           { success: false, message: 'Executive or teacher sponsor access required.' },
           { status: 403, headers: corsHeaders }
         );
       }
-
-      const callerProfile = { role: callerRole };
 
       const payload = await req.json() as Payload;
       const email = payload.email.trim().toLowerCase();
@@ -220,18 +222,9 @@ export default {
           join_date: new Date().toISOString(),
         };
 
-        const { error: upsertError } = await ctx.supabase.rpc('create_dtpbc_profile', {
-          p_id: profile.id,
-          p_member_id: profile.member_id,
-          p_first_name: profile.first_name,
-          p_last_name: profile.last_name,
-          p_student_id: profile.student_id,
-          p_grade: profile.grade,
-          p_email: profile.email,
-          p_role: profile.role,
-          p_skill_level: profile.skill_level,
-          p_join_date: profile.join_date,
-        });
+        const { error: upsertError } = await ctx.supabaseAdmin
+          .from('profiles')
+          .upsert(profile, { onConflict: 'id' });
         if (upsertError) {
           await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
           return Response.json({ success: false, message: `Account was created but profile setup failed: ${upsertError.message}` }, { status: 500, headers: corsHeaders });
@@ -278,18 +271,22 @@ export default {
           return Response.json({ success: false, message: existingProfileError.message }, { status: 400, headers: corsHeaders });
         }
 
-        const { error: profileUpdateError } = await ctx.supabase.rpc('create_dtpbc_profile', {
-          p_id: payload.id,
-          p_member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : (existingProfile?.member_id || ''),
-          p_first_name: names.first_name,
-          p_last_name: names.last_name,
-          p_student_id: payload.studentId || '',
-          p_grade: payload.grade,
-          p_email: email,
-          p_role: payload.role,
-          p_skill_level: payload.skillLevel,
-          p_join_date: existingProfile?.join_date || new Date().toISOString(),
-        });
+        const profileUpdate = {
+          id: payload.id,
+          member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : (existingProfile?.member_id || ''),
+          first_name: names.first_name,
+          last_name: names.last_name,
+          student_id: payload.studentId || '',
+          grade: payload.grade,
+          email,
+          role: payload.role,
+          skill_level: payload.skillLevel,
+          join_date: existingProfile?.join_date || new Date().toISOString(),
+        };
+
+        const { error: profileUpdateError } = await ctx.supabaseAdmin
+          .from('profiles')
+          .upsert(profileUpdate, { onConflict: 'id' });
 
         if (profileUpdateError) {
           return Response.json({ success: false, message: profileUpdateError.message }, { status: 400, headers: corsHeaders });
