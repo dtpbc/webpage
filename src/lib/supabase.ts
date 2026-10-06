@@ -40,33 +40,11 @@ export async function getMemberByAuthId(authId: string): Promise<User | null> {
     } as User;
   }
 
-  // Fallback for deployments where the RPC migration has not been applied yet.
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', authId)
-    .maybeSingle();
-
-  if (profileError) {
-    console.warn('Supabase profile fetch error:', profileError.message);
-    return null;
-  }
-
-  if (!profile) return null;
-
-  const authUser = await supabase.auth.getUser();
-
-  return {
-    id: profile.id,
-    memberId: profile.member_id || '',
-    name: [profile.first_name, profile.last_name].filter(Boolean).join(' ') || profile.name || 'DTPBC Member',
-    studentId: profile.student_id || '',
-    grade: profile.grade || 'Grade 10',
-    email: profile.email || authUser.data.user?.email || '',
-    role: profile.role || 'member',
-    skillLevel: profile.skill_level || 'Beginner (Learning Rules)',
-    joinDate: profile.join_date || profile.created_at || '',
-  } as User;
+  // Do not fall back to a browser-side profiles query. The public.profiles
+  // table is intentionally protected by RLS; the RPC above is the only
+  // browser-side profile lookup path.
+  if (error) console.warn('Supabase profile RPC error:', error.message);
+  return null;
 }
 
 export async function getRemoteRoster(): Promise<User[] | null> {
