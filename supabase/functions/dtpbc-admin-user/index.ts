@@ -112,13 +112,6 @@ export default {
       }
 
       const payload = await req.json() as Payload;
-      const email = payload.email.trim().toLowerCase();
-      const name = payload.name.trim();
-
-      if (!name || !email || !email.includes('@')) {
-        return Response.json({ success: false, message: 'Name and a valid email address are required.' }, { status: 400, headers: corsHeaders });
-      }
-
       if (payload.action === 'bulk_create') {
         const users = payload.users || [];
         const results = [];
@@ -204,6 +197,13 @@ export default {
         return Response.json({ success: true, results }, { headers: corsHeaders });
       }
 
+      const email = (payload.email || '').trim().toLowerCase();
+      const name = (payload.name || '').trim();
+
+      if (!name || !email || !email.includes('@')) {
+        return Response.json({ success: false, message: 'Name and a valid email address are required.' }, { status: 400, headers: corsHeaders });
+      }
+
       const names = splitName(name);
 
       if (payload.action === 'create') {
@@ -278,7 +278,7 @@ export default {
       }
 
       if (payload.action === 'update' && payload.id) {
-        if (payload.id === callerId && payload.role !== callerProfile.role) {
+        if (payload.id === callerId && payload.role !== callerRole) {
           return Response.json({ success: false, message: 'You cannot change your own staff role.' }, { status: 400, headers: corsHeaders });
         }
 
