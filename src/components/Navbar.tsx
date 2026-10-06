@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Scan, ExternalLink, ShoppingBag, Calendar, Users } from 'lucide-react';
 
-export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'portal' | 'attendance' | 'fundraising' | 'roster' | 'sponsors';
+export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'portal' | 'attendance' | 'fundraising' | 'roster' | 'sponsors';
 
 interface NavbarProps {
   currentRoute: AppRoute;
@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
           <button 
             onClick={() => navigate('fundraising')}
             className={`transition-colors cursor-pointer ${
-              currentRoute === 'merch' ? 'text-emerald-800 font-bold' : 'hover:text-emerald-700'
+              currentRoute === 'fundraising' ? 'text-emerald-800 font-bold' : 'hover:text-emerald-700'
             }`}
           >
             Fundraising
