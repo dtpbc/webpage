@@ -48,7 +48,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     }
 
     const parseTime = (value: string) => {
-      const match = value.match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+      const match = value.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
       if (!match) return null;
       let hour = Number(match[1]);
       const minute = Number(match[2]);
@@ -58,7 +58,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
       return { hour, minute };
     };
 
-    const times = session.time.split(/\\s*[–-]\\s*/);
+    const times = session.time.split(/\s*[–-]\s*/);
     const start = parseTime(times[0]);
     const end = parseTime(times[1] || times[0]);
     if (!start || !end) {
@@ -69,7 +69,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     const toUtcStamp = (date: string, time: {hour:number; minute:number}) => {
       const local = new Date(date + 'T00:00:00');
       local.setHours(time.hour, time.minute, 0, 0);
-      return local.toISOString().replace(/[-:]/g, '').replace(/\\.\\d{3}Z$/, 'Z');
+      return local.toISOString().replace(/[-:]/g, '').replace(/\\.\d{3}Z$/, 'Z');
     };
 
     const startStamp = toUtcStamp(session.date, start);
@@ -78,7 +78,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
       'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DTPBC//Club Schedule//EN','CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
       'UID:' + session.id + '@dtpbc',
-      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\\.\\d{3}Z$/, 'Z'),
+      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\\.\d{3}Z$/, 'Z'),
       'DTSTART:' + startStamp,
       'DTEND:' + endStamp,
       'SUMMARY:' + session.title.replace(/[\\r\\n]/g, ' '),
@@ -154,8 +154,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     const sessionEnd = new Date(session.date + 'T23:59:59');
 
     // If a time range is available, archive the session as soon as its end time passes.
-    const endTimeText = session.time?.split(/\\s*[–-]\\s*/)[1] || session.time;
-    const match = endTimeText?.match(/(\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+    const endTimeText = session.time?.split(/\s*[–-]\s*/)[1] || session.time;
+    const match = endTimeText?.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
 
     if (match) {
       let hour = Number(match[1]);
