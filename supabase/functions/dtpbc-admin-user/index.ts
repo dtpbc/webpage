@@ -139,17 +139,17 @@ export default {
             continue;
           }
 
-          const { error: profileError } = await ctx.supabaseAdmin.from('profiles').upsert({
-            id: created.user.id,
-            member_id: memberId,
-            first_name: userNames.first_name,
-            last_name: userNames.last_name,
-            student_id: studentId,
-            grade: userGrade,
-            email: userEmail,
-            role: userRole,
-            skill_level: userSkill,
-            join_date: new Date().toISOString(),
+          const { error: profileError } = await ctx.supabase.rpc('create_dtpbc_profile', {
+            p_id: created.user.id,
+            p_member_id: memberId,
+            p_first_name: userNames.first_name,
+            p_last_name: userNames.last_name,
+            p_student_id: studentId,
+            p_grade: userGrade,
+            p_email: userEmail,
+            p_role: userRole,
+            p_skill_level: userSkill,
+            p_join_date: new Date().toISOString(),
           });
 
           if (profileError) {
@@ -220,7 +220,18 @@ export default {
           join_date: new Date().toISOString(),
         };
 
-        const { error: upsertError } = await ctx.supabaseAdmin.from('profiles').upsert(profile);
+        const { error: upsertError } = await ctx.supabase.rpc('create_dtpbc_profile', {
+          p_id: profile.id,
+          p_member_id: profile.member_id,
+          p_first_name: profile.first_name,
+          p_last_name: profile.last_name,
+          p_student_id: profile.student_id,
+          p_grade: profile.grade,
+          p_email: profile.email,
+          p_role: profile.role,
+          p_skill_level: profile.skill_level,
+          p_join_date: profile.join_date,
+        });
         if (upsertError) {
           await ctx.supabaseAdmin.auth.admin.deleteUser(created.user.id);
           return Response.json({ success: false, message: `Account was created but profile setup failed: ${upsertError.message}` }, { status: 500, headers: corsHeaders });
@@ -257,19 +268,28 @@ export default {
           return Response.json({ success: false, message: authUpdateError.message }, { status: 400, headers: corsHeaders });
         }
 
-        const { error: profileUpdateError } = await ctx.supabaseAdmin
+        const { data: existingProfile, error: existingProfileError } = await ctx.supabaseAdmin
           .from('profiles')
-          .update({
-            member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : undefined,
-            first_name: names.first_name,
-            last_name: names.last_name,
-            student_id: payload.studentId || '',
-            grade: payload.grade,
-            email,
-            role: payload.role,
-            skill_level: payload.skillLevel,
-          })
-          .eq('id', payload.id);
+          .select('member_id, join_date')
+          .eq('id', payload.id)
+          .maybeSingle();
+
+        if (existingProfileError) {
+          return Response.json({ success: false, message: existingProfileError.message }, { status: 400, headers: corsHeaders });
+        }
+
+        const { error: profileUpdateError } = await ctx.supabase.rpc('create_dtpbc_profile', {
+          p_id: payload.id,
+          p_member_id: payload.memberId ? `PB-${payload.memberId.replace(/^PB-/i, '')}` : (existingProfile?.member_id || ''),
+          p_first_name: names.first_name,
+          p_last_name: names.last_name,
+          p_student_id: payload.studentId || '',
+          p_grade: payload.grade,
+          p_email: email,
+          p_role: payload.role,
+          p_skill_level: payload.skillLevel,
+          p_join_date: existingProfile?.join_date || new Date().toISOString(),
+        });
 
         if (profileUpdateError) {
           return Response.json({ success: false, message: profileUpdateError.message }, { status: 400, headers: corsHeaders });
