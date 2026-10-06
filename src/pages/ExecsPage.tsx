@@ -204,6 +204,15 @@ export const ExecsPage: React.FC<ExecsPageProps> = ({ onNavigateHome, onNavigate
               <span>Volunteer Sign-Up Form</span>
               <ExternalLink className="w-4 h-4" />
             </a>
+            <a
+              href="https://forms.gle/w2PhQhMEMwg6C6pq9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-xs font-bold text-white bg-sky-700 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-700/20 whitespace-nowrap"
+            >
+              <span>Executive Sign-Up</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </div>
