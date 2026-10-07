@@ -34,6 +34,24 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   ];
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Only show the check-ins belonging to the currently selected event.
+  // Switching events therefore starts the visible attendance list fresh
+  // without deleting the saved attendance records from other events.
+  const selectedEventAttendance = selectedEventId
+    ? attendanceRecords.filter(record => record.eventId === selectedEventId)
+    : [];
+
+  const handleEventChange = (eventId: string) => {
+    setSelectedEventId(eventId);
+    setFeedback(null);
+    setConfirmClear(false);
+    setBarcodeInput('');
+    setGuestName('');
+    setShowGuestForm(false);
+    setSearchRosterQuery('');
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
   // Auto-focus barcode input for quick scanning with handheld USB/Bluetooth barcode scanner
   useEffect(() => {
     inputRef.current?.focus();
@@ -112,7 +130,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
             <div className="rounded-2xl bg-white border border-sky-200 p-6 shadow-md">
               <label className="block mb-4">
                 <span className="block text-xs font-bold text-slate-700 mb-1.5">Attendance Event</span>
-                <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)} className="w-full px-3 py-3 bg-slate-50 border-2 border-sky-300 focus:border-emerald-700 rounded-xl text-sm text-slate-900 focus:outline-none">
+                <select value={selectedEventId} onChange={e => handleEventChange(e.target.value)} className="w-full px-3 py-3 bg-slate-50 border-2 border-sky-300 focus:border-emerald-700 rounded-xl text-sm text-slate-900 focus:outline-none">
                   <option value="">Select an event...</option>
                   {attendanceEvents.map(event => <option key={event.id} value={event.id}>{event.title} — {event.date}</option>)}
                 </select>
@@ -202,7 +220,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                   </div>
                 ) : (
                   filteredMembers.map((m) => {
-                    const isAlreadyCheckedIn = attendanceRecords.some(
+                    const isAlreadyCheckedIn = selectedEventAttendance.some(
                       a => a.studentId === m.studentId || a.memberId === m.memberId
                     );
 
@@ -250,11 +268,11 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                       Attendance Log — {selectedEventId ? (attendanceEvents.find(e => e.id === selectedEventId)?.title || 'Selected Event') : 'Select an Event'}
                     </h3>
                     <p className="text-xs text-slate-500">
-                      {attendanceRecords.length} Students Checked In
+                      {selectedEventAttendance.length} Students Checked In
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {attendanceRecords.length > 0 && (
+                    {selectedEventAttendance.length > 0 && (
                       confirmClear ? (
                         <div className="flex items-center gap-1">
                           <button
@@ -294,7 +312,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                       No student check-ins recorded yet for today's session.
                     </div>
                   ) : (
-                    attendanceRecords.map((att) => (
+                    selectedEventAttendance.map((att) => (
                       <div
                         key={att.id}
                         className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between shadow-2xs group"
