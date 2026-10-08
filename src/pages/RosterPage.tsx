@@ -106,7 +106,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-6 sm:py-10 px-3 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-5 sm:py-10 px-3 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-sky-200">
           <button onClick={onNavigateHome} className="inline-flex items-center gap-2 text-sm font-bold text-sky-800 hover:text-sky-950">
@@ -119,13 +119,13 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
 
         <div className="mb-7">
           <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-2">Private Staff Area</p>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Member Roster</h1>
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Member Roster</h1>
           <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">All DTPBC accounts are shown here. Executive officers and the teacher sponsor are listed as staff, while regular students are listed as members. Admins are only executives and teacher sponsors; there is no separate admin role.</p>
         </div>
 
         <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-            <div className="flex items-center justify-between gap-3"><div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} admin{roster.filter(member => member.role !== 'member').length === 1 ? '' : 's'}</div><button onClick={startAdd} className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm px-4 py-2.5"><Plus className="w-4 h-4" /> Add User Manually</button></div>
+          <div className="p-3 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div className="text-sm font-bold text-slate-900">{roster.filter(member => member.role === 'member').length} member{roster.filter(member => member.role === 'member').length === 1 ? '' : 's'} · {roster.filter(member => member.role !== 'member').length} admin{roster.filter(member => member.role !== 'member').length === 1 ? '' : 's'}</div><button onClick={startAdd} className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-800 text-white font-bold text-sm px-4 py-3 w-full sm:w-auto"><Plus className="w-4 h-4" /> Add User Manually</button></div>
             <label className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, ID..." className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm outline-none focus:border-sky-500 focus:bg-white" />
@@ -136,7 +136,7 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
             {roster.length === 0 ? (
               <div className="p-10 text-center text-sm text-slate-500">No DTPBC accounts match your search.</div>
             ) : roster.map(member => (
-              <button key={member.id} onClick={() => { setSelected(member); setMessage(''); }} className="w-full text-left p-4 sm:p-5 hover:bg-sky-50/60 transition-colors">
+              <button key={member.id} onClick={() => { setSelected(member); setMessage(''); }} className="w-full text-left p-3 sm:p-5 hover:bg-sky-50/60 transition-colors">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <div className="w-11 h-11 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sm font-extrabold text-sky-900 shrink-0">
                     {member.name.split(' ').map(p => p[0]).join('').slice(0,2)}
