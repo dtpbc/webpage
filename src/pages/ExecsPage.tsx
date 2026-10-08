@@ -34,7 +34,7 @@ export const ExecsPage: React.FC<ExecsPageProps> = ({ onNavigateHome, onNavigate
     return (
       <div
         key={exec.name}
-        className={`rounded-2xl border p-6 sm:p-7 flex flex-col justify-between transition-all ${
+        className={`rounded-2xl border p-4 sm:p-7 flex flex-col justify-between transition-all ${
           isPrimary
             ? 'bg-gradient-to-b from-white to-sky-50/60 border-sky-300 shadow-md ring-1 ring-sky-300/50'
             : 'bg-white border-sky-200/90 hover:border-sky-400 hover:shadow-md shadow-xs'
@@ -104,7 +104,7 @@ export const ExecsPage: React.FC<ExecsPageProps> = ({ onNavigateHome, onNavigate
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Navigation */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-sky-200">
@@ -130,7 +130,7 @@ export const ExecsPage: React.FC<ExecsPageProps> = ({ onNavigateHome, onNavigate
             <Users className="w-4 h-4 text-sky-600" />
             <span>Executive Officers & Sponsor</span>
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="font-display text-2xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
             Meet the DTPBC Team
           </h1>
           <p className="mt-3 text-base text-slate-700 leading-relaxed">
@@ -180,7 +180,7 @@ export const ExecsPage: React.FC<ExecsPageProps> = ({ onNavigateHome, onNavigate
         </div>
 
         {/* Volunteer Service Hours Banner */}
-        <div className="rounded-2xl bg-gradient-to-r from-emerald-900 to-[#042817] border border-emerald-700 p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl text-white">
+        <div className="rounded-2xl bg-gradient-to-r from-emerald-900 to-[#042817] border border-emerald-700 p-5 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl text-white">
           <div className="space-y-2 text-center md:text-left">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300 uppercase tracking-wider">
               <Award className="w-4 h-4 text-emerald-400" />
