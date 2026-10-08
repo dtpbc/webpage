@@ -91,7 +91,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-8 sm:py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Top return strip */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-sky-200">
@@ -122,9 +122,9 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
         </div>
 
         {/* Member Profile Overview & Digital Student Pass with Real QR */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-5 sm:gap-8 mb-8 sm:mb-10 sm:mb-12">
           {/* Student Profile Card (NO PROFILE PHOTO - using initials badge) */}
-          <div className="lg:col-span-8 rounded-2xl bg-white border border-sky-200 p-6 sm:p-8 flex flex-col justify-between shadow-sm">
+          <div className="lg:col-span-8 rounded-2xl bg-white border border-sky-200 p-4 sm:p-8 flex flex-col justify-between shadow-sm">
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-4">
