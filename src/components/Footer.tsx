@@ -8,9 +8,9 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ navigate }) => {
   return (
-    <footer className="border-t border-emerald-800/40 bg-gradient-to-b from-[#08291f] to-[#041a12] py-12 sm:py-16 text-xs text-slate-200">
+    <footer className="border-t border-emerald-800/40 bg-gradient-to-b from-[#08291f] to-[#041a12] py-10 sm:py-16 text-xs text-slate-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10 sm:mb-12">
           {/* Brand Info */}
           <div className="space-y-3 md:col-span-1">
             <h4 className="font-display text-lg font-bold text-white tracking-tight flex items-center gap-2">
@@ -190,7 +190,7 @@ export const Footer: React.FC<FooterProps> = ({ navigate }) => {
         {/* Quiet Bottom Strip */}
         <div className="pt-8 border-t border-sky-900/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
           <p>© 2026 David Thompson Secondary School Pickleball Club. Vancouver School Board (SD39).</p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-5 gap-y-2">
             <span>David Thompson Athletics</span>
             <span>Non-Marking Footwear Policy</span>
             <span>Vancouver, BC</span>
