@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Scan, ExternalLink, ShoppingBag, Calendar, Users } from 'lucide-react';
+import { LogOut, Scan, ExternalLink, ShoppingBag, Calendar, Users, Menu, X } from 'lucide-react';
 
 export type AppRoute = 'home' | 'schedule' | 'execs' | 'login' | 'signup' | 'forgot-password' | 'reset-password' | 'portal' | 'attendance' | 'fundraising' | 'roster' | 'sponsors';
 
@@ -10,6 +10,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   const { 
     currentUser, 
     isAdmin,
@@ -17,8 +18,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
   } = useAuth();
 
   const goRoster = () => {
+    setMobileOpen(false);
     window.history.pushState(null, '', '/roster');
     window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  const go = (route: AppRoute) => {
+    setMobileOpen(false);
+    navigate(route);
   };
 
   const initials = currentUser
@@ -110,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
               )}
 
               <button
-                onClick={() => navigate('portal')}
+                onClick={() => go('portal')}
                 className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
                   currentRoute === 'portal'
                     ? 'bg-sky-600 text-white border-sky-600 font-bold shadow-xs'
@@ -120,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
                 <div className="w-5 h-5 rounded bg-sky-900 text-sky-200 font-bold text-[10px] flex items-center justify-center shrink-0">
                   {initials}
                 </div>
-                <span className="max-w-[110px] truncate">{currentUser.name.split(' ')[0]}</span>
+                <span className="hidden lg:inline max-w-[110px] truncate">{currentUser.name.split(' ')[0]}</span>
                 <span className="text-[11px] font-mono text-emerald-800 font-bold">{currentUser.memberId || `#${currentUser.studentId}`}</span>
               </button>
 
@@ -135,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
           ) : (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => navigate('login')}
+                onClick={() => go('login')}
                 className={`px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer whitespace-nowrap rounded-lg ${
                   currentRoute === 'login' ? 'text-slate-900 bg-slate-100' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
@@ -143,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
                 Student Login
               </button>
               <button
-                onClick={() => navigate('signup')}
+                onClick={() => go('signup')}
                 className="px-4 py-1.5 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-700 rounded-lg transition-colors cursor-pointer whitespace-nowrap shadow-xs shadow-emerald-800/20"
               >
                 Join Free
@@ -151,6 +158,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
             </div>
           )}
         </div>
+        <button type="button" aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)} className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-xs">
+          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+      {mobileOpen && (
+        <div className="md:hidden border-t border-sky-100 bg-white shadow-lg">
+          <nav className="mx-auto max-w-7xl px-4 py-3 space-y-1">
+            {[
+              ['schedule', 'Gym Schedule'], ['execs', 'Execs & Team'], ['sponsors', 'Sponsors'], ['fundraising', 'Fundraising'],
+            ].map(([route, label]) => (
+              <button key={route} onClick={() => go(route as AppRoute)} className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold ${currentRoute === route ? 'bg-sky-50 text-sky-800' : 'text-slate-700 hover:bg-slate-50'}`}>
+                {label}
+              </button>
+            ))}
+            <a href="https://forms.gle/e3wNimUZKqBbFMC38" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-emerald-800 hover:bg-emerald-50">Volunteer Hours <ExternalLink className="w-4 h-4" /></a>
+            {currentUser && isAdmin && <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 mt-2"><button onClick={goRoster} className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-700"><Users className="w-4 h-4 text-sky-700" /> Roster</button><button onClick={() => go('attendance')} className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm font-bold text-emerald-800"><Scan className="w-4 h-4" /> Scanner</button></div>}
+            {!currentUser && <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 mt-2"><button onClick={() => go('login')} className="px-3 py-3 rounded-xl bg-slate-100 text-sm font-bold text-slate-800">Student Login</button><button onClick={() => go('signup')} className="px-3 py-3 rounded-xl bg-emerald-800 text-white text-sm font-bold">Join Free</button></div>}
+          </nav>
+        </div>
+      )}
       </div>
     </header>
   );
