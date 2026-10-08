@@ -186,7 +186,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Navigation */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-sky-200">
@@ -204,12 +204,12 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
         </div>
 
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-8 sm:mb-10">
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-sky-800 mb-2">
               Official Club Timetable
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
               Gym Schedule
             </h1>
             <p className="mt-3 text-base text-slate-700 max-w-2xl leading-relaxed">
@@ -239,7 +239,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
         </div>
 
         {/* CLICKABLE INTERACTIVE CALENDAR */}
-        <div className="mb-10 rounded-2xl bg-white border border-sky-200 p-6 sm:p-8 shadow-sm">
+        <div className="mb-10 rounded-2xl bg-white border border-sky-200 p-4 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-sky-800 uppercase tracking-wider">
@@ -396,7 +396,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                 return (
                   <div
                     key={session.id}
-                    className="rounded-2xl bg-white border border-sky-200 p-6 sm:p-7 hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between shadow-xs"
+                    className="rounded-2xl bg-white border border-sky-200 p-4 sm:p-7 hover:border-sky-400 hover:shadow-md transition-all flex flex-col justify-between shadow-xs"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-xs">
