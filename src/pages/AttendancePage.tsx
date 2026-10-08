@@ -92,10 +92,10 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#e6f3fc] via-[#f0f9ff] to-[#eaf6ef] py-5 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         {/* Top return */}
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-sky-200">
+        <div className="flex items-center justify-between mb-5 sm:mb-8 pb-3 sm:pb-4 border-b border-sky-200">
           <button
             onClick={onNavigatePortal}
             className="inline-flex items-center gap-2 text-xs font-bold text-sky-800 hover:text-sky-950 transition-colors cursor-pointer"
@@ -104,7 +104,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
             <span>Back to Member Portal</span>
           </button>
 
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-800">
+          <div className="flex items-center gap-2 hidden sm:flex items-center gap-2 text-xs font-mono font-bold text-emerald-800">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
             <span>DTPBC Executive Attendance Station</span>
           </div>
@@ -116,7 +116,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
             <Scan className="w-4 h-4 text-emerald-700" />
             <span>Barcode & QR Scanner Terminal</span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900">
+          <h1 className="font-display text-2xl sm:text-4xl font-extrabold text-slate-900">
             Gym Drop-In Attendance Scanner
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-2xl leading-relaxed">
@@ -127,7 +127,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Scan Input Column */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="rounded-2xl bg-white border border-sky-200 p-6 shadow-md">
+            <div className="rounded-2xl bg-white border border-sky-200 p-4 sm:p-6 shadow-md">
               <label className="block mb-4">
                 <span className="block text-xs font-bold text-slate-700 mb-1.5">Attendance Event</span>
                 <select value={selectedEventId} onChange={e => handleEventChange(e.target.value)} className="w-full px-3 py-3 bg-slate-50 border-2 border-sky-300 focus:border-emerald-700 rounded-xl text-sm text-slate-900 focus:outline-none">
@@ -184,7 +184,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
             </div>
 
             {/* Member Roster with SEARCH BAR */}
-            <div className="rounded-2xl bg-white border border-sky-200 p-6 space-y-3 shadow-xs">
+            <div className="rounded-2xl bg-white border border-sky-200 p-4 sm:p-6 space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <h4 className="font-display text-sm font-bold text-slate-900 flex items-center gap-2">
                   <Users className="w-4 h-4 text-slate-500" />
@@ -213,7 +213,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                 )}
               </div>
 
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[52vh] sm:max-h-60 overflow-y-auto pr-1">
                 {filteredMembers.length === 0 ? (
                   <div className="text-center py-6 text-slate-400 text-xs">
                     No members matching "{searchRosterQuery}"
@@ -260,9 +260,9 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
 
           {/* Today's Logged Attendance Column */}
           <div className="lg:col-span-6 space-y-4">
-            <div className="rounded-2xl bg-white border border-sky-200 p-6 flex flex-col justify-between h-full shadow-md">
+            <div className="rounded-2xl bg-white border border-sky-200 p-4 sm:p-6 flex flex-col justify-between h-full shadow-md">
               <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-100 mb-4">
                   <div>
                     <h3 className="font-display text-lg font-bold text-slate-900">
                       Attendance Log — {selectedEventId ? (attendanceEvents.find(e => e.id === selectedEventId)?.title || 'Selected Event') : 'Select an Event'}
@@ -306,7 +306,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                   </div>
                 </div>
 
-                <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[55vh] sm:max-h-[460px] overflow-y-auto pr-1">
                   {attendanceRecords.length === 0 ? (
                     <div className="text-center py-12 text-slate-400 text-xs">
                       No student check-ins recorded yet for today's session.
