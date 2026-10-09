@@ -220,14 +220,18 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
                   </div>
                 ) : (
                   filteredMembers.map((m) => {
-                    const isAlreadyCheckedIn = selectedEventAttendance.some(
-                      a => a.studentId === m.studentId || a.memberId === m.memberId
+                    const isTeacher = m.grade === 'Staff / Teacher';
+                    const isAlreadyCheckedIn = selectedEventAttendance.some(a =>
+                      isTeacher
+                        ? Boolean(m.memberId) && a.memberId === m.memberId
+                        : (Boolean(m.studentId) && a.studentId === m.studentId) ||
+                          (Boolean(m.memberId) && a.memberId === m.memberId)
                     );
 
                     return (
                       <button
                         key={m.id}
-                        onClick={() => handleQuickTapMember(m.studentId)}
+                        onClick={() => handleQuickTapMember(m.grade === 'Staff / Teacher' ? m.memberId : m.studentId)}
                         className={`w-full p-2.5 rounded-lg border text-left transition-colors cursor-pointer flex items-center justify-between ${
                           isAlreadyCheckedIn
                             ? 'bg-slate-50 border-slate-200 opacity-75'
