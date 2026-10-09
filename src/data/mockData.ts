@@ -111,7 +111,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     bio: 'Passionate about fair play, tournament organizing, and active student sports.',
   },
   {
-    name: 'Bela Asadon',
+    name: 'Luis Angelo Mendoza',
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
