@@ -178,7 +178,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
           </nav>
         </div>
       )}
-      </div>
     </header>
   );
 };
