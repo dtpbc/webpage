@@ -308,11 +308,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const query = input.trim().toLowerCase();
     const cleanId = input.replace(/\D/g, '');
 
-    // Match by 7-digit student number OR by DTPBC Member ID (e.g. "PB-1001")
-    const member = allMembers.find(
-      m => (cleanId.length === 7 && m.studentId === cleanId) || 
-           m.studentId === query ||
-           m.memberId.toLowerCase() === query
+    // Prefer an exact DTPBC Member ID match. Teacher profiles may not have
+    // unique school student numbers, so staff quick-check-ins use member IDs.
+    const memberByClubId = allMembers.find(
+      m => Boolean(m.memberId) && m.memberId.toLowerCase() === query
+    );
+    const member = memberByClubId || allMembers.find(
+      m => (cleanId.length === 7 && m.studentId === cleanId) ||
+           (Boolean(m.studentId) && m.studentId.toLowerCase() === query)
     );
     
     if (!member) {
@@ -322,9 +325,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    // DO NOT allow the same person to be checked in multiple times!
-    const alreadyCheckedIn = attendanceRecords.find(
-      a => a.eventId === eventId && (a.studentId === member.studentId || a.memberId === member.memberId)
+    // Teacher profiles can share a placeholder school ID. Identify teachers by
+    // their unique DTPBC Member ID; use school ID/member ID for student duplicates.
+    const isTeacher = member.grade === 'Staff / Teacher';
+    const alreadyCheckedIn = attendanceRecords.find(a =>
+      a.eventId === eventId && (
+        isTeacher
+          ? Boolean(member.memberId) && a.memberId === member.memberId
+          : (Boolean(member.studentId) && a.studentId === member.studentId) ||
+            (Boolean(member.memberId) && a.memberId === member.memberId)
+      )
     );
     if (alreadyCheckedIn) {
       return {
@@ -335,7 +345,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const newRecord: AttendanceRecord = {
-      id: `att-${Date.now()}`,
+      id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       memberId: member.memberId,
       studentId: member.studentId,
       studentName: member.name,
