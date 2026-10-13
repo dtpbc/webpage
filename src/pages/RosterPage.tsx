@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, KeyRound, Search, ShieldCheck, Trash2, X, UserCog, Pencil, Plus, Save } from 'lucide-react';
+import { ArrowLeft, KeyRound, Search, ShieldCheck, Trash2, X, UserCog, Pencil, Plus, Save, CalendarCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { adminManageUser, requestPasswordReset } from '../lib/supabase';
 import { User } from '../types';
@@ -9,7 +9,7 @@ interface RosterPageProps {
 }
 
 export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
-  const { currentUser, allMembers, isAdmin, refreshRoster, deleteMember, promoteMemberToExecutive } = useAuth();
+  const { currentUser, allMembers, attendanceRecords, isAdmin, refreshRoster, deleteMember, promoteMemberToExecutive } = useAuth();
   const [selected, setSelected] = useState<User | null>(null);
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
@@ -29,6 +29,13 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
     return allMembers
       .filter(member => !q || [member.name, member.email, member.memberId, member.studentId, member.grade].some(v => v.toLowerCase().includes(q)));
   }, [allMembers, search]);
+
+  const selectedAttendance = selected ? attendanceRecords
+    .filter(record => selected.memberId
+      ? record.memberId === selected.memberId || (!record.memberId && record.studentId === selected.studentId)
+      : record.studentId === selected.studentId)
+    .sort((a, b) => b.id.localeCompare(a.id)) : [];
+  const selectedAttendedEvents = new Set(selectedAttendance.map(record => record.eventId || record.eventTitle)).size;
 
   if (!currentUser || !isAdmin) {
     return (
@@ -180,6 +187,27 @@ export const RosterPage: React.FC<RosterPageProps> = ({ onNavigateHome }) => {
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] font-bold uppercase text-slate-500">Email</div><div className="text-sm font-semibold break-all mt-1">{selected.email}</div></div>
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><div className="text-[10px] font-bold uppercase text-slate-500">Student ID</div><div className="text-sm font-mono font-semibold mt-1">#{selected.studentId}</div></div>
             </div>}
+
+            {selected && (
+              <section className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-900"><CalendarCheck className="w-4 h-4 text-emerald-800" /> Attendance History</div>
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-extrabold text-emerald-900">{selectedAttendedEvents} event{selectedAttendedEvents === 1 ? '' : 's'} attended</span>
+                </div>
+                {selectedAttendance.length === 0 ? (
+                  <p className="mt-3 text-xs text-slate-600">No attendance records found for this person yet.</p>
+                ) : (
+                  <div className="mt-3 max-h-40 overflow-y-auto divide-y divide-emerald-100">
+                    {selectedAttendance.map((record, index) => (
+                      <div key={record.id || `${record.eventId}-${index}`} className="py-2 first:pt-0 last:pb-0 flex items-start justify-between gap-3">
+                        <span className="text-sm font-semibold text-slate-800">{record.eventTitle || 'Club event'}</span>
+                        <span className="text-[11px] text-slate-500 shrink-0">{record.timestamp || 'Checked in'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
 
             {editing ? (
               <div className="mt-6 space-y-3">
