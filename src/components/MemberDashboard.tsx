@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Check,
   Calendar,
+  CalendarCheck,
   Award,
   ExternalLink,
   Edit,
@@ -67,7 +68,10 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
   if (!currentUser) return null;
 
   const registeredEventList = events.filter(e => userRegisteredEvents.includes(e.id));
-  const myAttendance = attendanceRecords.filter(a => a.memberId === currentUser.memberId && a.studentId === currentUser.studentId);
+  const myAttendance = attendanceRecords.filter(a => currentUser.memberId
+    ? a.memberId === currentUser.memberId || (!a.memberId && a.studentId === currentUser.studentId)
+    : a.studentId === currentUser.studentId);
+  const myAttendedEvents = new Set(myAttendance.map(record => record.eventId || record.eventTitle)).size;
   const initials = currentUser.name
     .split(' ')
     .map(p => p[0])
@@ -274,7 +278,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-xl font-bold text-slate-900">
-                My Registered Events & Matches ({registeredEventList.length})
+                My Attendance & Events
               </h2>
               <button
                 onClick={onNavigateSchedule}
@@ -282,6 +286,29 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
               >
                 View Full Gym Schedule →
               </button>
+            </div>
+
+            <div className="rounded-2xl bg-white border border-emerald-200 p-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2"><CalendarCheck className="w-5 h-5 text-emerald-800" /><h3 className="font-bold text-slate-900">My Attendance History</h3></div>
+                <span className="text-xs font-extrabold text-emerald-900 bg-emerald-100 rounded-full px-3 py-1">{myAttendedEvents} event{myAttendedEvents === 1 ? '' : 's'} attended</span>
+              </div>
+              {myAttendance.length === 0 ? (
+                <p className="text-sm text-slate-500 mt-3">No attendance has been recorded for your account yet.</p>
+              ) : (
+                <div className="mt-3 divide-y divide-slate-100">
+                  {myAttendance.map((record, index) => (
+                    <div key={record.id || `${record.eventId}-${index}`} className="py-3 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <span className="text-sm font-semibold text-slate-800">{record.eventTitle || 'Club event'}</span>
+                      <span className="text-xs text-slate-500">{record.timestamp || 'Attendance recorded'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <h3 className="text-sm font-bold text-slate-800">My Registered Events & Matches ({registeredEventList.length})</h3>
             </div>
 
             {registeredEventList.length === 0 ? (
