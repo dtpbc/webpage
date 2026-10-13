@@ -307,59 +307,7 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <h3 className="text-sm font-bold text-slate-800">My Registered Events & Matches ({registeredEventList.length})</h3>
-            </div>
 
-            {registeredEventList.length === 0 ? (
-              <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center space-y-3 shadow-xs">
-                <Calendar className="w-8 h-8 text-slate-400 mx-auto" />
-                <p className="text-sm text-slate-800 font-semibold">No event registrations</p>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  You are not currently registered for any tournament matches or exhibition games.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {registeredEventList.map((ev) => (
-                  <div
-                    key={ev.id}
-                    className="rounded-xl bg-white border border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>{ev.date}</span>
-                        <span aria-hidden="true" className="text-slate-300">·</span>
-                        <span>{ev.time}</span>
-                      </div>
-                      <h4 className="font-display text-base font-bold text-slate-900">
-                        {ev.title}
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        {ev.location} · {ev.category}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 self-start sm:self-center">
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold">
-                        Confirmed
-                      </span>
-
-                      {/* Unregister button */}
-                      <button
-                        onClick={() => unregisterForEvent(ev.id)}
-                        className="px-3 py-1 text-xs font-bold text-red-700 hover:text-white bg-red-50 hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                        title="Unregister from this event"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Remove</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Volunteer Hours Form Box */}
