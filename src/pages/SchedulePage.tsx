@@ -15,7 +15,8 @@ import {
   ChevronLeft, 
   ChevronRight,
   Filter,
-  CalendarPlus
+  CalendarPlus,
+  CheckCircle2
 } from 'lucide-react';
 
 interface SchedulePageProps {
@@ -35,6 +36,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
   
   const [remindedSessionId, setRemindedSessionId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [eventTab, setEventTab] = useState<'scheduled' | 'completed'>('scheduled');
 
   // Clickable calendar state
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date(2026, 9, 1)); // October 2026
@@ -145,8 +147,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  // Completed dated sessions stay in Supabase for historical records and attendance,
-  // but are hidden from the public schedule. Sessions without a date remain visible.
+  // Keep past events on the calendar, while separating them from the upcoming list below.
   const isSessionCompleted = (session: ClubSession) => {
     if (!session.date) return false;
 
@@ -169,14 +170,17 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
     return sessionEnd < now;
   };
 
-  const visibleSessions = sessions.filter(session => !isSessionCompleted(session));
+  const scheduledSessions = sessions.filter(session => !isSessionCompleted(session));
+  const completedSessions = sessions.filter(session => isSessionCompleted(session));
 
+  // Calendar dots/counts include both upcoming and completed events.
   const getSessionsForCalendarDate = (date: Date) => {
     const dateKey = formatCalendarDate(date);
-    return visibleSessions.filter(s => s.date === dateKey);
+    return sessions.filter(s => s.date === dateKey);
   };
 
-  const filteredSessions = visibleSessions.filter((s) => {
+  const activeListSessions = eventTab === 'completed' ? completedSessions : scheduledSessions;
+  const filteredSessions = activeListSessions.filter((s) => {
     if (selectedCalendarDate !== null) {
       const selectedDate = new Date(year, month, selectedCalendarDate);
       const dateKey = formatCalendarDate(selectedDate);
@@ -250,7 +254,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                 {monthNames[month]} {year}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Click any day to filter sessions or schedule court times.
+                Click any day to filter events. Past events remain marked on the calendar and are available in Completed Events below.
               </p>
             </div>
 
@@ -361,11 +365,21 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
           )}
         </div>
 
+        {/* Public tabs for upcoming and completed events */}
+        <div className="mb-5 flex flex-wrap gap-2" role="tablist" aria-label="Event lists">
+          <button type="button" role="tab" aria-selected={eventTab === 'scheduled'} onClick={() => setEventTab('scheduled')} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold border transition-colors ${eventTab === 'scheduled' ? 'bg-sky-800 text-white border-sky-800' : 'bg-white text-slate-700 border-sky-200 hover:bg-sky-50'}`}>
+            <CalendarIcon className="w-4 h-4" /> Upcoming Events
+          </button>
+          <button type="button" role="tab" aria-selected={eventTab === 'completed'} onClick={() => { setEventTab('completed'); setSelectedCalendarDate(null); setSelectedDayOfWeek(null); }} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold border transition-colors ${eventTab === 'completed' ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-white text-slate-700 border-sky-200 hover:bg-emerald-50'}`}>
+            <CheckCircle2 className="w-4 h-4" /> Completed Events
+          </button>
+        </div>
+
         {/* Sessions Schedule Grid with Direct Deletion */}
         <div className="space-y-4 mb-12">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-bold text-slate-900">
-              Scheduled Sessions ({filteredSessions.length})
+              {eventTab === 'completed' ? 'Completed Events' : 'Scheduled Sessions'} ({filteredSessions.length})
             </h2>
             {selectedDayOfWeek && (
               <span className="text-xs text-slate-500 font-medium">
@@ -376,7 +390,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
 
           {filteredSessions.length === 0 ? (
             <div className="rounded-2xl bg-white border border-slate-200 p-8 text-center text-xs text-slate-500 space-y-2">
-              <p className="font-bold text-slate-700">No scheduled sessions for this day</p>
+              <p className="font-bold text-slate-700">{eventTab === 'completed' ? 'No completed events found for this selection' : 'No upcoming sessions for this day'}</p>
               <button
                 onClick={() => {
                   setSelectedCalendarDate(null);
@@ -384,7 +398,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigateHome, onNa
                 }}
                 className="text-sky-800 font-bold hover:underline"
               >
-                View all sessions
+                {eventTab === 'completed' ? 'View all completed events' : 'View all upcoming sessions'}
               </button>
             </div>
           ) : (
