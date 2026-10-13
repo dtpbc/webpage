@@ -40,12 +40,13 @@ export const SponsorsPage: React.FC<SponsorsPageProps> = ({ onNavigateHome }) =>
         {SPONSORS.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SPONSORS.map((sponsor) => (
-              <div key={sponsor.name} className="min-h-48 rounded-2xl bg-white border border-sky-200 shadow-sm p-8 flex items-center justify-center">
+              <div key={sponsor.name} className="min-h-48 rounded-2xl bg-white border border-sky-200 shadow-sm p-6 sm:p-8 flex flex-col items-center justify-center gap-4">
                 {!imageErrors[sponsor.name] ? (
                   <img src={sponsor.logo} alt={sponsor.name} onError={() => setImageErrors(prev => ({ ...prev, [sponsor.name]: true }))} className="max-h-28 max-w-full object-contain" />
                 ) : (
-                  <span className="text-sm font-bold text-slate-700">{sponsor.name}</span>
+                  <div className="h-20 flex items-center justify-center text-sm font-bold text-slate-700">{sponsor.name}</div>
                 )}
+                <h2 className="text-base font-bold text-slate-900 text-center">{sponsor.name}</h2>
               </div>
             ))}
           </div>
