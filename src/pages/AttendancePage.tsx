@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { QrCode, ArrowLeft, CheckCircle2, AlertCircle, Scan, Users, Clock, Trash2, Search, XCircle } from 'lucide-react';
+import { QrCode, ArrowLeft, CheckCircle2, AlertCircle, Scan, Users, Clock, Trash2, Search, XCircle, Camera, CameraOff } from 'lucide-react';
 
 interface AttendancePageProps {
   onNavigateHome: () => void;
@@ -27,12 +27,96 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   const [guestName, setGuestName] = useState('');
   const [showGuestForm, setShowGuestForm] = useState(false);
   const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const cameraStreamRef = useRef<MediaStream | null>(null);
 
   const attendanceEvents = [
     ...sessions.filter(s => s.date).map(s => ({ id: s.id, title: s.title, date: s.date! })),
     ...events.map(e => ({ id: e.id, title: e.title, date: e.date })),
   ];
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Use the browser's native QR detector so no third-party scanner service is needed.
+  useEffect(() => {
+    if (!cameraOpen) return;
+
+    let cancelled = false;
+    let frameId = 0;
+    let detector: { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>> } | null = null;
+    const browserWithBarcodeDetector = window as Window & {
+      BarcodeDetector?: new (options?: { formats: string[] }) => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>> };
+    };
+
+    const stopCamera = () => {
+      if (frameId) cancelAnimationFrame(frameId);
+      cameraStreamRef.current?.getTracks().forEach(track => track.stop());
+      cameraStreamRef.current = null;
+    };
+
+    const startCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError('Camera access is not supported by this browser. Try the latest Chrome or enter the ID manually.');
+        return;
+      }
+      if (!browserWithBarcodeDetector.BarcodeDetector) {
+        setCameraError('QR scanning is not supported by this browser. Try the latest Chrome or enter the ID manually.');
+        return;
+      }
+
+      try {
+        detector = new browserWithBarcodeDetector.BarcodeDetector({ formats: ['qr_code'] });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        if (cancelled) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        cameraStreamRef.current = stream;
+        const video = videoRef.current;
+        if (!video) return;
+        video.srcObject = stream;
+        await video.play();
+
+        const scanFrame = async () => {
+          if (cancelled || !video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !detector) {
+            if (!cancelled) frameId = requestAnimationFrame(scanFrame);
+            return;
+          }
+          try {
+            const codes = await detector.detect(video);
+            const value = codes.find(code => code.rawValue?.trim())?.rawValue?.trim();
+            if (value && !cancelled) {
+              cancelled = true;
+              stopCamera();
+              setCameraOpen(false);
+              setCameraError('');
+              const result = recordAttendance(value, selectedEventId);
+              setFeedback(result);
+              setBarcodeInput('');
+              setTimeout(() => setFeedback(null), 4000);
+              return;
+            }
+          } catch {
+            // Keep scanning; a single blurry frame should not stop the camera.
+          }
+          if (!cancelled) frameId = requestAnimationFrame(scanFrame);
+        };
+        scanFrame();
+      } catch (error) {
+        setCameraError(error instanceof Error && error.name === 'NotAllowedError'
+          ? 'Camera permission was denied. Allow camera access in your browser settings and try again.'
+          : 'Could not start the camera. Check that your device has a camera and that this page is using HTTPS.');
+      }
+    };
+
+    setCameraError('');
+    startCamera();
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
+  }, [cameraOpen, selectedEventId, recordAttendance]);
 
   // Only show the check-ins belonging to the currently selected event.
   // Switching events therefore starts the visible attendance list fresh
@@ -142,6 +226,29 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
               <p className="text-xs text-slate-600 mb-4">
                 Point any standard barcode or QR scanner at the student's mobile pass, or enter their 7-digit school ID or Club Member ID (e.g. PB-1001).
               </p>
+
+              <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setCameraError(''); setCameraOpen(v => !v); }}
+                  disabled={!selectedEventId}
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-xs font-bold text-white bg-sky-800 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  {cameraOpen ? <CameraOff className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                  {cameraOpen ? 'Close Camera' : 'Scan QR with Camera'}
+                </button>
+                <p className="flex items-center text-[11px] leading-relaxed text-slate-500">Use your phone or computer camera to scan a student QR pass.</p>
+              </div>
+
+              {cameraOpen && (
+                <div className="mb-4 rounded-xl overflow-hidden border-2 border-sky-300 bg-slate-950">
+                  <video ref={videoRef} autoPlay muted playsInline className="w-full max-h-72 object-contain" />
+                  <p className="px-3 py-2 text-center text-xs font-semibold text-white">Hold the QR code inside the camera view.</p>
+                </div>
+              )}
+              {cameraError && (
+                <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900" role="alert">{cameraError}</div>
+              )}
 
               <form onSubmit={handleScanSubmit} className="space-y-3">
                 <div className="relative">
