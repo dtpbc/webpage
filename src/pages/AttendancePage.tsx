@@ -232,9 +232,16 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
               <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => { setCameraError(''); setCameraOpen(v => !v); }}
-                  disabled={!selectedEventId}
-                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-xs font-bold text-white bg-sky-800 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (!selectedEventId) {
+                      setFeedback({ success: false, message: 'Please select an attendance event before scanning.' });
+                      return;
+                    }
+                    setFeedback(null);
+                    setCameraError('');
+                    setCameraOpen(v => !v);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-xs font-bold text-white bg-sky-800 hover:bg-sky-700 transition-colors cursor-pointer"
                 >
                   {cameraOpen ? <CameraOff className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
                   {cameraOpen ? 'Close Camera' : 'Scan QR with Camera'}
