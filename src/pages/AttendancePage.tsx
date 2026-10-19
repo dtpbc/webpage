@@ -31,6 +31,8 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
   const [cameraError, setCameraError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
+  const recordAttendanceRef = useRef(recordAttendance);
+  recordAttendanceRef.current = recordAttendance;
 
   const attendanceEvents = [
     ...sessions.filter(s => s.date).map(s => ({ id: s.id, title: s.title, date: s.date! })),
@@ -91,7 +93,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
               stopCamera();
               setCameraOpen(false);
               setCameraError('');
-              const result = recordAttendance(value, selectedEventId);
+              const result = recordAttendanceRef.current(value, selectedEventId);
               setFeedback(result);
               setBarcodeInput('');
               setTimeout(() => setFeedback(null), 4000);
@@ -116,7 +118,7 @@ export const AttendancePage: React.FC<AttendancePageProps> = ({ onNavigateHome, 
       cancelled = true;
       stopCamera();
     };
-  }, [cameraOpen, selectedEventId, recordAttendance]);
+  }, [cameraOpen, selectedEventId]);
 
   // Only show the check-ins belonging to the currently selected event.
   // Switching events therefore starts the visible attendance list fresh
