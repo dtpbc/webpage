@@ -85,7 +85,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     bio: 'Reliable court monitor who keeps games moving and nets properly tensioned.',
   },
   {
-    name: 'Johanna Vergizina',
+    name: 'Annie Nguyen',
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
@@ -98,7 +98,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     bio: 'Brings great energy to the gym and connects students across grades.',
   },
   {
-    name: 'Jain Ram',
+    name: 'Luis Angelo Mendoza',
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
@@ -111,7 +111,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     bio: 'Passionate about fair play, tournament organizing, and active student sports.',
   },
   {
-    name: 'Luis Angelo Mendoza',
+    name: 'Aizelle Gonzales',
     role: 'Member-at-large',
     category: 'Member-at-large',
     grade: 'Grade 11',
