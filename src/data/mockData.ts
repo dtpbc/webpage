@@ -88,7 +88,7 @@ export const ALL_EXECUTIVES: ExecutiveMember[] = [
     name: 'Annie Nguyen',
     role: 'Member-at-large',
     category: 'Member-at-large',
-    grade: 'Grade 11',
+    grade: 'Grade 8',
     photoFilename: 'mal-2.jpg',
     responsibilities: [
       'Assisting with student check-ins at gym doors',
